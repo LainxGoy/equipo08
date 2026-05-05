@@ -15,6 +15,8 @@ export default function SourcingPage() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [filterProducto, setFilterProducto] = useState('ALL');
   const [filterSucursal, setFilterSucursal] = useState('ALL');
+  const [filterDateStart, setFilterDateStart] = useState('');
+  const [filterDateEnd, setFilterDateEnd] = useState('');
   const [loteForm, setLoteForm] = useState({ producto_id: '', proveedor_id: '', sucursal_id: '', cantidad: 1, fechaVencimiento: '' });
   const toast = useToast();
 
@@ -213,6 +215,14 @@ export default function SourcingPage() {
             {sucursales.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
+          <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Vence desde:</label>
+          <input type="date" value={filterDateStart} onChange={e => setFilterDateStart(e.target.value)} style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)' }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
+          <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Vence hasta:</label>
+          <input type="date" value={filterDateEnd} onChange={e => setFilterDateEnd(e.target.value)} style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)' }} />
+        </div>
       </div>
 
       {/* Table Section */}
@@ -236,6 +246,9 @@ export default function SourcingPage() {
                 const filtered = historial.filter(h => {
                   if (filterProducto !== 'ALL' && h.producto_id !== filterProducto) return false;
                   if (filterSucursal !== 'ALL' && h.sucursal_id !== filterSucursal) return false;
+                  if (filterDateStart && h.fechaVencimiento && h.fechaVencimiento < filterDateStart) return false;
+                  if (filterDateEnd && h.fechaVencimiento && h.fechaVencimiento > filterDateEnd) return false;
+                  if ((filterDateStart || filterDateEnd) && !h.fechaVencimiento) return false; // Filter out those without exp date if date filter is active
                   return true;
                 });
                 if (filtered.length === 0) return (

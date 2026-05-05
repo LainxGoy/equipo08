@@ -12,7 +12,7 @@ export default function ProductsPage() {
   const [editingId, setEditingId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [formData, setFormData] = useState({ 
-    name: '', sku: '', proveedor_id: '', category: 'Otros', precioCosto: '', precioVenta: '' 
+    name: '', sku: '', proveedor_id: '', category: 'Otros', precioCosto: '', precioVenta: '', description: '' 
   });
   const toast = useToast();
 
@@ -51,7 +51,8 @@ export default function ProductsPage() {
       proveedor_id: p.proveedor_id || '', 
       category: p.category || 'Otros',
       precioCosto: p.precioCosto || '',
-      precioVenta: p.precioVenta || ''
+      precioVenta: p.precioVenta || '',
+      description: p.description || ''
     });
     setShowForm(true);
   };
@@ -79,7 +80,11 @@ export default function ProductsPage() {
     e.preventDefault();
     try {
       const payload = {
-        ...formData,
+        name: formData.name,
+        sku: formData.sku,
+        proveedor_id: formData.proveedor_id,
+        category: formData.category,
+        description: formData.description,
         precioCosto: parseFloat(formData.precioCosto),
         precioVenta: parseFloat(formData.precioVenta)
       };
@@ -99,7 +104,7 @@ export default function ProductsPage() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', sku: '', proveedor_id: '', category: 'Otros', precioCosto: '', precioVenta: '' });
+    setFormData({ name: '', sku: '', proveedor_id: '', category: 'Otros', precioCosto: '', precioVenta: '', description: '' });
     setEditingId(null);
     setShowForm(false);
   };
@@ -147,7 +152,12 @@ export default function ProductsPage() {
               
               <div className="form-group">
                 <label>Nombre del Producto *</label>
-                <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required placeholder="Ej. Zapatillas Nike" />
+                <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required placeholder="Ej. Coca-Cola, Zapatillas Nike" />
+              </div>
+
+              <div className="form-group">
+                <label>Variante / Especificación (Opcional)</label>
+                <input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Ej. Zero 500ml, Talla M, etc." />
               </div>
 
               <div className="form-group">
@@ -242,6 +252,11 @@ export default function ProductsPage() {
                   <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: '500', color: '#1f2937' }}>{p.name}</span>
+                      {p.description && (
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px', marginBottom: '2px' }}>
+                          Variante: {p.description}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem' }}>
                         <span style={{ color: '#94a3b8' }}>SKU: {p.sku}</span>
                         <span style={{ color: 'var(--accent-blue)', fontWeight: 'bold' }}>• {p.proveedor?.name || 'Prov. Indefinido'}</span>

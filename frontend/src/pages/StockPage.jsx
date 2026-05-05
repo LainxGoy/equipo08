@@ -8,6 +8,7 @@ export default function StockPage() {
   const [sucursales, setSucursales] = useState([]);
   const [ajustes, setAjustes] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('ALL');
+  const [searchProduct, setSearchProduct] = useState('');
   
   // Auditing Form State
   const [auditItem, setAuditItem] = useState(null);
@@ -86,9 +87,13 @@ export default function StockPage() {
     }
   };
 
-  const filteredStock = selectedBranch === 'ALL' 
-    ? stock 
-    : stock.filter(s => s.sucursal_id === selectedBranch);
+  const filteredStock = stock.filter(s => {
+    const matchBranch = selectedBranch === 'ALL' || s.sucursal_id === selectedBranch;
+    const matchProduct = searchProduct === '' || 
+      s.producto?.name?.toLowerCase().includes(searchProduct.toLowerCase()) || 
+      s.producto?.sku?.toLowerCase().includes(searchProduct.toLowerCase());
+    return matchBranch && matchProduct;
+  });
 
   const filteredAjustes = selectedBranch === 'ALL'
     ? ajustes
@@ -146,16 +151,27 @@ export default function StockPage() {
         </div>
 
         {!auditItem && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <MapPin size={18} color="var(--accent-blue)" />
-            <select 
-              value={selectedBranch} 
-              onChange={e => setSelectedBranch(e.target.value)}
-              style={{ minWidth: '200px', backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem' }}
-            >
-              <option value="ALL">Consolidado Total (Todas las Sucursales)</option>
-              {sucursales.map(s => <option key={s.id} value={s.id}>Sucursal: {s.name}</option>)}
-            </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input 
+                type="text" 
+                placeholder="Buscar por Nombre o SKU..." 
+                value={searchProduct} 
+                onChange={(e) => setSearchProduct(e.target.value)} 
+                style={{ minWidth: '200px', backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <MapPin size={18} color="var(--accent-blue)" />
+              <select 
+                value={selectedBranch} 
+                onChange={e => setSelectedBranch(e.target.value)}
+                style={{ minWidth: '200px', backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem' }}
+              >
+                <option value="ALL">Consolidado Total (Todas las Sucursales)</option>
+                {sucursales.map(s => <option key={s.id} value={s.id}>Sucursal: {s.name}</option>)}
+              </select>
+            </div>
           </div>
         )}
       </div>
