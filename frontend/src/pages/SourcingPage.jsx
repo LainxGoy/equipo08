@@ -22,6 +22,7 @@ export default function SourcingPage() {
 
   const userRole = localStorage.getItem('user_role');
   const userPermissions = JSON.parse(localStorage.getItem('permissions') || '{}');
+  const tenantName = localStorage.getItem('tenant_name') || 'Sucursal';
 
   const hasPermission = (key) => {
     if (userRole === 'OWNER') return true;
@@ -155,7 +156,7 @@ export default function SourcingPage() {
                 <label>Sucursal / Almacén de Destino *</label>
                 <select required value={loteForm.sucursal_id} onChange={e => setLoteForm({...loteForm, sucursal_id: e.target.value})} disabled={editingId ? true : false}>
                   <option value="">Seleccione sucursal...</option>
-                  {sucursales.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {sucursales.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{tenantName} ({s.name})</option>)}
                 </select>
               </div>
 
@@ -220,7 +221,7 @@ export default function SourcingPage() {
           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Filtrar Sucursal:</label>
           <select value={filterSucursal} onChange={e => setFilterSucursal(e.target.value)} style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)' }}>
             <option value="ALL">Todas las sucursales</option>
-            {sucursales.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {sucursales.map(s => <option key={s.id} value={s.id}>{tenantName} ({s.name})</option>)}
           </select>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '200px' }}>

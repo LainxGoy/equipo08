@@ -23,6 +23,7 @@ export default function StockPage() {
 
   const userRole = localStorage.getItem('user_role');
   const userPermissions = JSON.parse(localStorage.getItem('permissions') || '{}');
+  const tenantName = localStorage.getItem('tenant_name') || 'Sucursal';
 
   const hasPermission = (key) => {
     if (userRole === 'OWNER') return true;
@@ -169,7 +170,7 @@ export default function StockPage() {
                 style={{ minWidth: '200px', backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem' }}
               >
                 <option value="ALL">Consolidado Total (Todas las Sucursales)</option>
-                {sucursales.map(s => <option key={s.id} value={s.id}>Sucursal: {s.name}</option>)}
+                {sucursales.map(s => <option key={s.id} value={s.id}>{tenantName} ({s.name})</option>)}
               </select>
             </div>
           </div>
@@ -323,8 +324,9 @@ export default function StockPage() {
                    <td style={{ fontWeight: '500' }}><span style={{ backgroundColor: '#e2e8f0', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{s.producto?.sku}</span></td>
                    <td>{s.producto?.name}</td>
                    <td style={{ color: 'var(--text-secondary)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                         <MapPin size={14} /> {s.sucursal?.name || 'Huérfana'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                        <MapPin size={14} /> 
+                        <span>{tenantName} ({s.sucursal?.name})</span>
                       </div>
                    </td>
                    <td style={{ textAlign: 'center' }}>

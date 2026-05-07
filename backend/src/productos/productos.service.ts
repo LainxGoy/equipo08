@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, ILike } from 'typeorm';
+import { Repository, Not, ILike, IsNull } from 'typeorm';
 import { Producto } from './producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
 
@@ -24,15 +24,16 @@ export class ProductosService {
         throw new BadRequestException('El nombre del artículo no puede contener símbolos y debe tener al menos una letra (no puede ser solo números).');
       }
 
-      const existingName = await this.prodRep.findOne({
+      const existingExact = await this.prodRep.findOne({
         where: { 
           tenant_id, 
           name: ILike(dto.name), 
+          description: dto.description ? ILike(dto.description) : IsNull(),
           ...(excludeId ? { id: Not(excludeId) } : {}) 
         }
       });
-      if (existingName) {
-        throw new BadRequestException(`Ya existe un artículo registrado con el nombre '${dto.name}'. Evita duplicados.`);
+      if (existingExact) {
+        throw new BadRequestException(`Ya existe un artículo registrado con el nombre '${dto.name}' y la variante '${dto.description || 'Sin Variante'}'. Evita duplicados exactos.`);
       }
     }
     

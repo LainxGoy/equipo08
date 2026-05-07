@@ -15,6 +15,7 @@ export default function SucursalesPage() {
 
   const userRole = localStorage.getItem('user_role');
   const userPermissions = JSON.parse(localStorage.getItem('permissions') || '{}');
+  const tenantName = localStorage.getItem('tenant_name') || 'Tienda';
 
   const hasPermission = (key) => {
     if (userRole === 'OWNER') return true;
@@ -164,7 +165,7 @@ export default function SucursalesPage() {
                 </tr>
               ) : sucursales.map(s => (
                 <tr key={s.id}>
-                  <td style={{ fontWeight: '600', color: '#1f2937' }}>{s.name}</td>
+                  <td style={{ fontWeight: '600', color: '#1f2937' }}>{tenantName} ({s.name})</td>
                   <td style={{ color: '#64748b' }}>{s.address || '---'}</td>
                   <td style={{ color: '#64748b' }}>{s.phone || '---'}</td>
                   <td style={{ textAlign: 'center' }}>
