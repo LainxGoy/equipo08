@@ -22,5 +22,10 @@ export class CreateLoteIngresoDto {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
+  fechaElaboracion?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
   fechaVencimiento?: string;
 }

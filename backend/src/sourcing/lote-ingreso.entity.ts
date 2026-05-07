@@ -27,6 +27,9 @@ export class LoteIngreso {
   costoUnitarioSnapshot: number;
 
   @Column({ type: 'date', nullable: true })
+  fechaElaboracion: string;
+
+  @Column({ type: 'date', nullable: true })
   fechaVencimiento: string;
 
   @CreateDateColumn()

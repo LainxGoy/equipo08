@@ -17,7 +17,7 @@ export default function SourcingPage() {
   const [filterSucursal, setFilterSucursal] = useState('ALL');
   const [filterDateStart, setFilterDateStart] = useState('');
   const [filterDateEnd, setFilterDateEnd] = useState('');
-  const [loteForm, setLoteForm] = useState({ producto_id: '', proveedor_id: '', sucursal_id: '', cantidad: 1, fechaVencimiento: '' });
+  const [loteForm, setLoteForm] = useState({ producto_id: '', proveedor_id: '', sucursal_id: '', cantidad: 1, fechaElaboracion: '', fechaVencimiento: '' });
   const toast = useToast();
 
   const userRole = localStorage.getItem('user_role');
@@ -52,7 +52,7 @@ export default function SourcingPage() {
   };
 
   const resetForm = () => {
-    setLoteForm({ producto_id: '', proveedor_id: '', sucursal_id: '', cantidad: 1, fechaVencimiento: '' });
+    setLoteForm({ producto_id: '', proveedor_id: '', sucursal_id: '', cantidad: 1, fechaElaboracion: '', fechaVencimiento: '' });
     setEditingId(null);
     setShowForm(false);
   };
@@ -64,6 +64,7 @@ export default function SourcingPage() {
       proveedor_id: h.proveedor_id,
       sucursal_id: h.sucursal_id,
       cantidad: h.cantidad,
+      fechaElaboracion: h.fechaElaboracion || '',
       fechaVencimiento: h.fechaVencimiento || ''
     });
     setShowForm(true);
@@ -98,6 +99,7 @@ export default function SourcingPage() {
     try {
       const payload = {
         ...loteForm,
+        fechaElaboracion: loteForm.fechaElaboracion || null,
         fechaVencimiento: loteForm.fechaVencimiento || null,
         cantidad: parseInt(loteForm.cantidad)
       };
@@ -164,7 +166,7 @@ export default function SourcingPage() {
                   setLoteForm({...loteForm, producto_id: e.target.value, proveedor_id: selectedProd ? selectedProd.proveedor_id : ''});
                 }} disabled={editingId ? true : false}>
                   <option value="">Seleccione artículo...</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.description ? `- ${p.description}` : ''} ({p.sku})</option>)}
                 </select>
               </div>
 
@@ -183,10 +185,16 @@ export default function SourcingPage() {
               </div>
 
               {showExpirationDate && (
-                <div className="form-group">
-                  <label>Fecha de Vencimiento (Opcional)</label>
-                  <input type="date" value={loteForm.fechaVencimiento || ''} onChange={e => setLoteForm({...loteForm, fechaVencimiento: e.target.value})} />
-                </div>
+                <>
+                  <div className="form-group">
+                    <label>Fecha de Elaboración (Opcional)</label>
+                    <input type="date" value={loteForm.fechaElaboracion || ''} onChange={e => setLoteForm({...loteForm, fechaElaboracion: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label>Fecha de Vencimiento (Opcional)</label>
+                    <input type="date" value={loteForm.fechaVencimiento || ''} onChange={e => setLoteForm({...loteForm, fechaVencimiento: e.target.value})} />
+                  </div>
+                </>
               )}
             </div>
 
@@ -205,7 +213,7 @@ export default function SourcingPage() {
           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Filtrar Producto:</label>
           <select value={filterProducto} onChange={e => setFilterProducto(e.target.value)} style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)' }}>
             <option value="ALL">Todos los productos</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
+            {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.description ? `- ${p.description}` : ''} ({p.sku})</option>)}
           </select>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
@@ -265,6 +273,11 @@ export default function SourcingPage() {
                  <tr key={h.id}>
                    <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
                       #{h.id.split('-')[0]}
+                      {h.fechaElaboracion && (
+                        <div style={{ color: '#16a34a', fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold' }}>
+                           Elab: {h.fechaElaboracion}
+                        </div>
+                      )}
                       {h.fechaVencimiento && (
                         <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold' }}>
                            Vence: {h.fechaVencimiento}
@@ -273,8 +286,13 @@ export default function SourcingPage() {
                    </td>
                    <td>{new Date(h.fechaIngreso).toLocaleDateString()} {new Date(h.fechaIngreso).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
                    <td style={{ fontWeight: '500' }}>
-                     {h.producto?.name || '---'} 
-                     <br/><span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{h.producto?.sku}</span>
+                     {h.producto?.name || '---'}
+                     {h.producto?.description && (
+                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginTop: '2px' }}>
+                         Variante: {h.producto.description}
+                       </span>
+                     )}
+                     <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', marginTop: '2px' }}>SKU: {h.producto?.sku}</span>
                    </td>
                    <td>{h.proveedor?.name || '---'}</td>
                    <td style={{ textAlign: 'center' }}>
