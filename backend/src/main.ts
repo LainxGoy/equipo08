@@ -17,9 +17,20 @@ async function bootstrap() {
     .addGlobalParameters({
       in: 'header',
       name: 'x-tenant-id',
-      required: false, // Make false so standard swagger page doesn't crash, but handles inside
-      description: 'El ID del tenant actual',
+      required: false,
+      description: 'El ID del tenant actual (Legacy, ahora usamos subdominio o token)',
     })
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Introduce el token JWT (access_token)',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
     
   const document = SwaggerModule.createDocument(app, config);
