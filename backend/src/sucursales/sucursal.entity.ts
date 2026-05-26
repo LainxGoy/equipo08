@@ -18,6 +18,9 @@ export class Sucursal {
   @Column({ nullable: true })
   phone: string;
 
+  @Column({ nullable: true })
+  horarios: string;
+
   @Column({ default: true })
   isActive: boolean;
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Store, Plus, X, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { Store, Plus, X, Loader2, Edit2, Trash2, Clock, Phone, MapPin } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
+import DoomEasterEgg from '../components/DoomEasterEgg';
 
 export default function SucursalesPage() {
   const [sucursales, setSucursales] = useState([]);
@@ -10,8 +11,27 @@ export default function SucursalesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [formData, setFormData] = useState({ name: '', address: '', phone: '', isActive: true });
+  const [formData, setFormData] = useState({ name: '', address: '', phone: '', horarios: '', isActive: true });
+  const [horariosData, setHorariosData] = useState([]);
+  const [showDoom, setShowDoom] = useState(false);
   const toast = useToast();
+  
+  const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+  const handleAddHorario = () => {
+    setHorariosData([...horariosData, { days: [], start: '08:00', end: '18:00' }]);
+  };
+
+  const handleUpdateHorarioDays = (index, day) => {
+    const newH = [...horariosData];
+    const days = newH[index].days;
+    if (days.includes(day)) {
+      newH[index].days = days.filter(d => d !== day);
+    } else {
+      newH[index].days = [...days, day];
+    }
+    setHorariosData(newH);
+  };
 
   const userRole = localStorage.getItem('user_role');
   const userPermissions = JSON.parse(localStorage.getItem('permissions') || '{}');
@@ -40,6 +60,11 @@ export default function SucursalesPage() {
   const handleEdit = (s) => {
     setEditingId(s.id);
     setFormData({ name: s.name, address: s.address || '', phone: s.phone || '', isActive: s.isActive });
+    try {
+      setHorariosData(s.horarios ? JSON.parse(s.horarios) : []);
+    } catch (e) {
+      setHorariosData([]);
+    }
     setShowForm(true);
   };
 
@@ -62,12 +87,22 @@ export default function SucursalesPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Easter Egg Check: Lunes a Lunes de 07:00 a 08:00
+    const isEasterEgg = horariosData.some(h => 
+      h.days.length === 7 && h.start === '07:00' && h.end === '08:00'
+    );
+    if (isEasterEgg) {
+      setShowDoom(true);
+    }
+    
+    const submitData = { ...formData, horarios: JSON.stringify(horariosData) };
     try {
       if (editingId) {
-        await api.put(`/sucursales/${editingId}`, formData);
+        await api.put(`/sucursales/${editingId}`, submitData);
         toast.success('Sucursal actualizada correctamente');
       } else {
-        await api.post('/sucursales', formData);
+        await api.post('/sucursales', submitData);
         toast.success('Nueva sucursal creada con éxito');
       }
       resetForm();
@@ -79,63 +114,162 @@ export default function SucursalesPage() {
 
   const resetForm = () => {
     setFormData({ name: '', address: '', phone: '', isActive: true });
+    setHorariosData([]);
     setEditingId(null);
     setShowForm(false);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="space-y-6">
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header and Actions */}
+      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-             <Store size={24} color="var(--primary-color)" /> Gestión de Sucursales
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+             <Store size={22} className="text-indigo-600" />
+             <span>Gestión de Sucursales</span>
           </h2>
-          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Administra los puntos de venta y almacenes físicos de tu Pyme.</p>
+          <p className="text-slate-500 text-xs mt-0.5">Administra los puntos de venta y almacenes físicos de tu Pyme.</p>
         </div>
         {hasPermission('sucursales_crear') && (
           <button 
             onClick={showForm ? resetForm : () => setShowForm(true)} 
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.5rem', 
-              backgroundColor: showForm ? 'var(--text-secondary)' : 'var(--accent-blue)' 
-            }}
+            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+              showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
           >
-            {showForm ? <><X size={18} /> Cancelar</> : <><Plus size={18} /> Aperturar Sucursal</>}
+            {showForm ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Aperturar Sucursal</>}
           </button>
         )}
       </div>
 
       {showForm && (
-        <div className="glass-container" style={{ animation: 'fadeIn 0.3s ease' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 mb-6">
             {editingId ? 'Configurar Sucursal' : 'Alta de Nueva Sucursal'}
           </h3>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-grid">
               <div className="form-group">
-                <label>Nombre Identificador *</label>
-                <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required pattern="^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s]*[A-Za-záéíóúÁÉÍÓÚñÑ][A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s]*$" title="El nombre no puede contener símbolos y debe tener al menos una letra." placeholder="Ej. Agencia Centro" />
+                <label htmlFor="branch-name">Nombre Identificador *</label>
+                <input 
+                  id="branch-name"
+                  type="text" 
+                  value={formData.name} 
+                  onChange={e => setFormData({...formData, name: e.target.value})} 
+                  required 
+                  pattern="^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s]*[A-Za-záéíóúÁÉÍÓÚñÑ][A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s]*$" 
+                  title="El nombre no puede contener símbolos y debe tener al menos una letra." 
+                  placeholder="Ej. Agencia Centro" 
+                />
               </div>
               <div className="form-group">
-                <label>Dirección Física</label>
-                <input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} pattern="^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s.,#\-]*$" title="La dirección contiene caracteres no permitidos." placeholder="Ej. Calle 123 esquina Avenida" />
+                <label htmlFor="branch-address">Dirección Física</label>
+                <input 
+                  id="branch-address"
+                  type="text" 
+                  value={formData.address} 
+                  onChange={e => setFormData({...formData, address: e.target.value})} 
+                  pattern="^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s.,#\-]*$" 
+                  title="La dirección contiene caracteres no permitidos." 
+                  placeholder="Ej. Calle 123 esquina Avenida" 
+                />
               </div>
               <div className="form-group">
-                <label>Teléfono / Contacto</label>
-                <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 8)})} required pattern="^[0-9]{8}$" title="El teléfono debe tener exactamente 8 dígitos numéricos." placeholder="Ej. 70001234" maxLength="8" />
+                <label htmlFor="branch-phone">Teléfono / Contacto</label>
+                <input 
+                  id="branch-phone"
+                  type="text" 
+                  value={formData.phone} 
+                  onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 8)})} 
+                  required 
+                  pattern="^[0-9]{8}$" 
+                  title="El teléfono debe tener exactamente 8 dígitos numéricos." 
+                  placeholder="Ej. 70001234" 
+                  maxLength="8" 
+                />
+              </div>
+              <div className="form-group col-span-full">
+                <label>Horarios de Atención</label>
+                <div className="flex flex-col gap-4 mt-1">
+                  {horariosData.map((h, i) => (
+                    <div key={i} className="flex flex-col gap-3 p-4 bg-slate-50 border border-slate-200/80 rounded-xl relative">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Días Aplicables:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {DAYS_OF_WEEK.map(day => {
+                            const active = h.days.includes(day);
+                            return (
+                              <button 
+                                key={day} 
+                                type="button" 
+                                onClick={() => handleUpdateHorarioDays(i, day)}
+                                className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-all ${
+                                  active 
+                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' 
+                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                                }`}
+                              >
+                                {day.slice(0, 3)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-4 items-center mt-1">
+                        <div className="flex items-center gap-1.5">
+                          <label className="text-xs font-semibold text-slate-500 m-0">Desde:</label>
+                          <input 
+                            type="time" 
+                            value={h.start} 
+                            onChange={e => { const newH = [...horariosData]; newH[i].start = e.target.value; setHorariosData(newH); }} 
+                            className="py-1 px-2 border border-slate-250 rounded text-xs w-28 focus:outline-none"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <label className="text-xs font-semibold text-slate-500 m-0">Hasta:</label>
+                          <input 
+                            type="time" 
+                            value={h.end} 
+                            onChange={e => { const newH = [...horariosData]; newH[i].end = e.target.value; setHorariosData(newH); }} 
+                            className="py-1 px-2 border border-slate-250 rounded text-xs w-28 focus:outline-none"
+                          />
+                        </div>
+                        
+                        <button 
+                          type="button" 
+                          onClick={() => setHorariosData(horariosData.filter((_, idx) => idx !== i))} 
+                          className="p-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-100 hover:border-rose-200 text-rose-600 rounded-lg absolute top-4 right-4"
+                          title="Eliminar horario"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button 
+                    type="button" 
+                    onClick={handleAddHorario} 
+                    className="self-start py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-white border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 transition-all"
+                  >
+                    <Plus size={14} /> 
+                    <span>Agregar Bloque de Horario</span>
+                  </button>
+                </div>
               </div>
               <div className="form-group">
-                <label>Estado de Operación</label>
-                <select value={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.value === 'true'})}>
+                <label htmlFor="branch-status">Estado de Operación</label>
+                <select id="branch-status" value={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.value === 'true'})}>
                   <option value="true">Activa y Operando</option>
                   <option value="false">Clausurada / Inactiva</option>
                 </select>
               </div>
             </div>
-            <div className="form-actions" style={{ marginTop: '1.5rem' }}>
-              <button type="submit">
-                {editingId ? 'Guardar Cambios' : 'Crear Sucursal Físicamente'}
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6">
+              <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs py-2 px-4 font-bold">
+                {editingId ? 'Guardar Cambios' : 'Aperturar Sucursal'}
               </button>
             </div>
           </form>
@@ -143,62 +277,115 @@ export default function SucursalesPage() {
       )}
 
       {/* Table Section */}
-      <div className="glass-container" style={{ padding: '0', overflow: 'hidden' }}>
-        {loading ? <div style={{ padding: '3rem', textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="var(--accent-blue)" style={{ margin: '0 auto' }} /></div> : (
-          <table>
-            <thead>
-              <tr>
-                <th>Sucursal / Almacén</th>
-                <th>Dirección</th>
-                <th>Contacto</th>
-                <th style={{ textAlign: 'center' }}>Estado</th>
-                <th style={{ textAlign: 'right', width: '100px' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sucursales.length === 0 ? (
+      <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+        {loading ? (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <Loader2 className="animate-spin text-indigo-600 mb-2" size={28} />
+            <p className="text-xs text-slate-500 font-semibold">Cargando sucursales comercial...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                    <Store size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} /><br/>
-                    Aún no has registrado ninguna sucursal física.
-                  </td>
+                  <th>Sucursal / Almacén</th>
+                  <th>Dirección</th>
+                  <th>Contacto / Horarios</th>
+                  <th className="text-center w-28">Estado</th>
+                  {hasPermission('sucursales_editar') && <th className="text-center w-24">Acciones</th>}
                 </tr>
-              ) : sucursales.map(s => (
-                <tr key={s.id}>
-                  <td style={{ fontWeight: '600', color: '#1f2937' }}>{tenantName} ({s.name})</td>
-                  <td style={{ color: '#64748b' }}>{s.address || '---'}</td>
-                  <td style={{ color: '#64748b' }}>{s.phone || '---'}</td>
-                  <td style={{ textAlign: 'center' }}>
-                    <span className={`badge ${s.isActive ? 'success' : 'danger'}`}>
-                      {s.isActive ? 'Operativa' : 'Inactiva'}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    {hasPermission('sucursales_editar') && (
-                      <button onClick={() => handleEdit(s)} style={{ padding: '0.25rem', background: 'none', color: 'var(--accent-blue)' }} title="Editar">
-                        <Edit2 size={16} />
-                      </button>
-                    )}
-                    {hasPermission('sucursales_eliminar') && (
-                      <button onClick={() => handleDelete(s.id)} style={{ padding: '0.25rem', background: 'none', color: 'var(--danger-color)', marginLeft: '0.5rem' }} title="Cerrar / Eliminar">
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sucursales.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center py-16 text-slate-450 font-medium">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Store size={28} className="text-slate-300" />
+                        <span>Aún no has registrado ninguna sucursal física.</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  sucursales.map(s => (
+                    <tr key={s.id}>
+                      <td>
+                        <div className="flex items-center gap-2 font-bold text-slate-800">
+                          <Store size={14} className="text-slate-400" />
+                          <span>{tenantName} ({s.name})</span>
+                        </div>
+                      </td>
+                      <td className="text-slate-500 text-xs">{s.address || '---'}</td>
+                      <td>
+                        <div className="flex flex-col gap-1.5">
+                          {s.phone ? (
+                            <span className="text-xs text-slate-700 flex items-center gap-1">
+                              <Phone size={10} className="text-slate-400" /> {s.phone}
+                            </span>
+                          ) : null}
+                          {s.horarios && (
+                            <div className="flex flex-col gap-1">
+                              {(() => {
+                                try {
+                                  const parsed = JSON.parse(s.horarios);
+                                  return parsed.map((h, i) => (
+                                    <span key={i} className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100/50 px-2 py-0.5 rounded-md flex items-center gap-1 w-fit">
+                                      <Clock size={10} />
+                                      <span>{h.days.length === 7 ? 'Todos los días' : h.days.map(d=>d.slice(0,3)).join(', ')}: {h.start} - {h.end}</span>
+                                    </span>
+                                  ));
+                                } catch(e) {
+                                  return <span className="text-[10px] text-slate-400">🕒 {s.horarios}</span>;
+                                }
+                              })()}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="text-center">
+                        <span className={`badge ${s.isActive ? 'success' : 'error'}`}>
+                          {s.isActive ? 'Operativa' : 'Inactiva'}
+                        </span>
+                      </td>
+                      {hasPermission('sucursales_editar') && (
+                        <td className="text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button 
+                              onClick={() => handleEdit(s)} 
+                              className="p-1.5 bg-slate-50 hover:bg-slate-100 text-indigo-600 rounded-lg transition-all"
+                              title="Editar"
+                            >
+                              <Edit2 size={12} />
+                            </button>
+                            {hasPermission('sucursales_eliminar') && (
+                              <button 
+                                onClick={() => handleDelete(s.id)} 
+                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all"
+                                title="Cerrar / Eliminar"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <ConfirmModal 
         isOpen={!!confirmDelete}
-        title="Eliminar Sucursal"
-        message="¿Seguro que deseas eliminar esta sucursal permanentemente? Esto fallará si la sucursal tiene inventario dentro."
+        title="Dar de Baja Sucursal"
+        message="¿Estás seguro de que deseas eliminar permanentemente esta sucursal? Esta acción puede afectar a los productos y registros de stock físico asociados."
         onConfirm={proceedDelete}
         onCancel={() => setConfirmDelete(null)}
       />
+
+      {showDoom && <DoomEasterEgg onClose={() => setShowDoom(false)} />}
     </div>
   );
 }

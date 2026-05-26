@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { XCircle, CheckCircle, Info } from 'lucide-react';
+import { XCircle, CheckCircle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext();
 
@@ -11,10 +11,7 @@ export const ToastProvider = ({ children }) => {
   const addToast = useCallback((message, type = 'info') => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
-
-    setTimeout(() => {
-      removeToast(id);
-    }, 5000); // Auto vanish after 5s
+    setTimeout(() => removeToast(id), 5000);
   }, []);
 
   const removeToast = useCallback((id) => {
@@ -22,9 +19,21 @@ export const ToastProvider = ({ children }) => {
   }, []);
 
   const toast = {
-    error: (msg) => addToast(msg, 'error'),
+    error:   (msg) => addToast(msg, 'error'),
     success: (msg) => addToast(msg, 'success'),
-    info: (msg) => addToast(msg, 'info'),
+    info:    (msg) => addToast(msg, 'info'),
+  };
+
+  const iconMap = {
+    error:   <XCircle    size={16} className="text-rose-500"    strokeWidth={1.75} />,
+    success: <CheckCircle size={16} className="text-emerald-500" strokeWidth={1.75} />,
+    info:    <Info        size={16} className="text-blue-500"    strokeWidth={1.75} />,
+  };
+
+  const labelMap = {
+    error:   'Error',
+    success: 'Completado',
+    info:    'Información',
   };
 
   return (
@@ -33,16 +42,14 @@ export const ToastProvider = ({ children }) => {
       <div className="toast-container">
         {toasts.map((t) => (
           <div key={t.id} className={`toast-card toast-${t.type}`}>
-            <div className="toast-icon">
-              {t.type === 'error' && <XCircle size={24} color="#ef4444" />}
-              {t.type === 'success' && <CheckCircle size={24} color="#10b981" />}
-              {t.type === 'info' && <Info size={24} color="#3b82f6" />}
-            </div>
+            <div className="toast-icon">{iconMap[t.type]}</div>
             <div className="toast-content">
-              <strong>{t.type === 'error' ? 'Operación Denegada' : t.type === 'success' ? 'Éxito' : 'Información'}</strong>
+              <strong>{labelMap[t.type]}</strong>
               <p>{t.message}</p>
             </div>
-            <button className="toast-close" onClick={() => removeToast(t.id)}>×</button>
+            <button className="toast-close" onClick={() => removeToast(t.id)}>
+              <X size={12} strokeWidth={2.5} />
+            </button>
           </div>
         ))}
       </div>

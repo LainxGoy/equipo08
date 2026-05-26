@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Plus, X, Loader2, Edit2, Trash2, Search, Building2 } from 'lucide-react';
+import { Plus, X, Loader2, Trash2, Search, Building2 } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -105,137 +105,164 @@ export default function ProvidersPage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="space-y-6">
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header and Actions */}
+      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Building2 size={24} color="var(--primary-color)" /> Mi Directorio de Proveedores
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Building2 size={22} className="text-indigo-600" />
+            <span>Directorio de Proveedores</span>
           </h2>
-          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Añade proveedores de manera local sincronizándolos mediante NIT.
+          <p className="text-slate-500 text-xs mt-0.5">
+            Añade proveedores registrados en el sistema central vinculándolos mediante su NIT.
           </p>
         </div>
         {hasPermission('proveedores_crear') && (
           <button 
             onClick={showForm ? resetForm : () => setShowForm(true)} 
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.5rem', 
-              backgroundColor: showForm ? 'var(--text-secondary)' : 'var(--accent-blue)' 
-            }}
+            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+              showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
           >
-            {showForm ? <><X size={18} /> Cancelar</> : <><Plus size={18} /> Nuevo Proveedor</>}
+            {showForm ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Nuevo Proveedor</>}
           </button>
         )}
       </div>
 
       {showForm && (
-        <div className="glass-container" style={{ animation: 'fadeIn 0.3s ease' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 mb-6">
             Importar Proveedor Maestro
           </h3>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-grid">
               
-              <div className="form-group" style={{ position: 'relative' }}>
-                <label>Buscador Maestro de NIT / RUT</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="form-group">
+                <label htmlFor="prov-tax-id">Buscador Maestro de NIT / RUT</label>
+                <div className="flex gap-2">
                   <input 
+                    id="prov-tax-id"
                     type="text" 
                     value={formData.taxId} 
                     onChange={e => setFormData({...formData, taxId: e.target.value})} 
                     pattern="^\d{8,12}$" 
                     title="Debe contener entre 8 y 12 números sin espacios ni símbolos" 
-                    placeholder="Escribe el NIT y pulsa buscar..." 
-                    style={{ flex: 1 }}
+                    placeholder="Escribe el NIT..." 
+                    className="flex-1"
                   />
                   {!isFound && (
                     <button 
                       type="button" 
                       onClick={handleNitSearch} 
                       disabled={searchingNit}
-                      style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--accent-blue)' }}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5"
                     >
-                      {searchingNit ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} 
+                      {searchingNit ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />} 
                       Buscar
                     </button>
                   )}
                 </div>
-                <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Ejemplo: 10002000 (Sugerido por Admin Central)
-                </p>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-1">
+                  NIT Sugerido para pruebas: 10002000 (Proveedor Maestro)
+                </span>
               </div>
 
               <div className="form-group">
-                <label>Razón Social / Nombre Oficial *</label>
+                <label htmlFor="prov-name">Razón Social / Nombre Comercial *</label>
                 <input 
+                  id="prov-name"
                   type="text" 
                   value={formData.name} 
                   required 
                   readOnly 
                   placeholder="Esperando NIT válido..." 
-                  style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }}
+                  className="bg-slate-50 cursor-not-allowed text-slate-500 border-slate-200"
                 />
               </div>
 
               <div className="form-group">
-                <label>Email de Contacto Comercial</label>
+                <label htmlFor="prov-email">Email de Contacto Comercial</label>
                 <input 
+                  id="prov-email"
                   type="email" 
                   value={formData.contactEmail} 
                   readOnly 
-                  placeholder="Se autonombra desde el NIT" 
-                  style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }}
+                  placeholder="Se autocompleta desde el NIT" 
+                  className="bg-slate-50 cursor-not-allowed text-slate-500 border-slate-200"
                 />
               </div>
 
             </div>
-            <div className="form-actions">
-              <button type="submit" disabled={!isFound} style={!isFound ? { opacity: 0.5, cursor: 'not-allowed' } : { backgroundColor: 'var(--primary-color)' }}>
-                Anexar Proveedor a mi Tienda
+            
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6">
+              <button 
+                type="submit" 
+                disabled={!isFound} 
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-lg text-xs py-2 px-4 font-bold"
+              >
+                Anexar Proveedor a la Tienda
               </button>
             </div>
           </form>
         </div>
       )}
 
-      <div className="glass-container" style={{ padding: '0', overflow: 'hidden' }}>
-        {loading ? <div style={{ padding: '3rem', textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="var(--accent-blue)" style={{ margin: '0 auto' }} /></div> : (
-          <table>
-            <thead>
-              <tr>
-                <th>Razón Social Local</th>
-                <th>NIT / RUT</th>
-                <th>Correo de Contacto</th>
-                <th style={{ textAlign: 'right', width: '100px' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {providers.length === 0 ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Aún no tienes proveedores en tu Empresa. Agrega uno mediante NIT.</td></tr>
-              ) : providers.map(p => (
-                <tr key={p.id}>
-                  <td style={{ fontWeight: '500' }}>{p.name}</td>
-                  <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{p.taxId || '-'}</td>
-                  <td>{p.contactEmail || '-'}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    {hasPermission('proveedores_eliminar') && (
-                      <button onClick={() => handleDelete(p.id)} style={{ padding: '0.25rem', background: 'none', color: 'var(--danger-color)' }} title="Eliminar">
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </td>
+      {/* Directory Table */}
+      <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+        {loading ? (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <Loader2 className="animate-spin text-indigo-600 mb-2" size={28} />
+            <p className="text-xs text-slate-500 font-semibold">Cargando directorio...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr>
+                  <th>Razón Social Local</th>
+                  <th>NIT / RUT</th>
+                  <th>Correo de Contacto</th>
+                  {hasPermission('proveedores_eliminar') && <th className="text-center w-24">Acciones</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {providers.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-16 text-slate-450 font-medium">
+                      No hay proveedores registrados en tu Empresa. Importa uno usando su NIT.
+                    </td>
+                  </tr>
+                ) : (
+                  providers.map(p => (
+                    <tr key={p.id}>
+                      <td className="font-semibold text-slate-800">{p.name}</td>
+                      <td className="font-mono text-xs text-slate-600">{p.taxId || '-'}</td>
+                      <td className="text-slate-500 text-xs">{p.contactEmail || '-'}</td>
+                      {hasPermission('proveedores_eliminar') && (
+                        <td className="text-center">
+                          <button 
+                            onClick={() => handleDelete(p.id)} 
+                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all"
+                            title="Quitar proveedor"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <ConfirmModal 
         isOpen={!!confirmDelete}
         title="Quitar Proveedor Local"
-        message="¿Estás seguro de que deseas quitar a este proveedor de la vista local de tu empresa? Solo se eliminará de TU catálogo."
+        message="¿Estás seguro de que deseas quitar a este proveedor de la vista local de tu empresa? Solo se eliminará de TU catálogo local, no del sistema maestro."
         onConfirm={proceedDelete}
         onCancel={() => setConfirmDelete(null)}
       />

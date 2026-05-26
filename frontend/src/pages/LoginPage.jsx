@@ -41,35 +41,50 @@ export default function LoginPage({ setAuthToken }) {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <div className="flex justify-center mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center p-2">
+            <img src="/logo.png" alt="BolClick Logo" className="w-full h-full object-contain" />
+          </div>
+        </div>
+        
         <h2 className="auth-title">Iniciar Sesión</h2>
         <p className="auth-subtitle">Accede al panel de control de tu tienda</p>
         
-        <form onSubmit={handleLogin}>
-          <label>Correo Electrónico</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={e => setEmail(e.target.value)} 
-            required 
-            placeholder="admin@mitienda.com"
-          />
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="form-group">
+            <label htmlFor="login-email">Correo Electrónico</label>
+            <input 
+              id="login-email"
+              type="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              required 
+              placeholder="admin@mitienda.com"
+            />
+          </div>
           
-          <label>Contraseña</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={e => setPassword(e.target.value)} 
-            required 
-            placeholder="••••••••"
-          />
+          <div className="form-group">
+            <label htmlFor="login-password">Contraseña</label>
+            <input 
+              id="login-password"
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              required 
+              placeholder="••••••••"
+            />
+          </div>
           
-          <button type="submit" disabled={loading} style={{ width: '100%', marginTop: '1rem' }}>
+          <button type="submit" disabled={loading} className="w-full h-11 mt-2 text-sm font-semibold">
             {loading ? 'Ingresando...' : 'Ingresar al Sistema'}
           </button>
         </form>
 
-        <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.9rem' }}>
-          ¿No tienes una cuenta? <span className="auth-link" onClick={() => navigate('/register')}>Registrar mi tienda</span>
+        <div className="mt-8 text-center text-xs text-slate-500 font-medium">
+          ¿No tienes una cuenta?{' '}
+          <span className="auth-link cursor-pointer hover:text-indigo-700 transition-colors" onClick={() => navigate('/register')}>
+            Registrar mi tienda
+          </span>
         </div>
       </div>
     </div>

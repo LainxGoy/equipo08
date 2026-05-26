@@ -15,283 +15,199 @@ import {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-orange-200">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
       
-      {/* Navigation Bar - PointMeUp Style: Transparent to Solid */}
-      <nav className="fixed w-full z-50 bg-blue-600/90 backdrop-blur-md border-b border-white/10 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Navigation Bar */}
+      <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50 py-4">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 font-black text-2xl shadow-lg">
-                B
+              <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center p-1.5 shadow-sm shadow-indigo-600/20">
+                <img src="/logo.png" alt="BolClick Logo" className="w-full h-full object-contain filter invert brightness-200" />
               </div>
-              <span className="font-black text-2xl tracking-tighter text-white">BolClick</span>
+              <span className="font-bold text-xl tracking-tight text-slate-900">BolClick</span>
             </div>
             <div className="flex items-center gap-4">
-              <Link to="/login" className="text-white/90 hover:text-white font-bold text-sm hidden sm:block">
+              <Link to="/login" className="text-slate-600 hover:text-slate-900 font-semibold text-sm transition-colors">
                 Iniciar Sesión
               </Link>
-              <Link to="/register" className="bg-white text-blue-600 px-6 py-2.5 rounded-full font-black text-sm shadow-xl hover:scale-105 transition-transform active:scale-95">
-                DEMO GRATIS
+              <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-semibold text-sm shadow-sm transition-all duration-150 active:scale-[0.97]">
+                Registrar Tienda
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section - The PointMeUp Bold Impact */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-56 bg-gradient-to-br from-blue-600 to-indigo-700 overflow-hidden">
-        {/* Abstract Background Shapes */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-          <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/20 blur-3xl"></div>
-          <div className="absolute top-1/2 -right-48 w-[30rem] h-[30rem] rounded-full bg-indigo-400/20 blur-3xl"></div>
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-36 bg-slate-950 overflow-hidden">
+        {/* Background Gradients */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
+          <div className="absolute -top-40 left-1/3 w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-3xl"></div>
+          <div className="absolute top-1/2 -right-20 w-[400px] h-[400px] rounded-full bg-blue-600/10 blur-3xl"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-[5.5rem] font-black text-white tracking-tighter leading-[0.95] mb-8 uppercase italic">
-              Controla tu negocio. <br/>
-              <span className="text-blue-200">Sin límites.</span>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 text-indigo-400 font-semibold text-xs rounded-full border border-indigo-500/20 mb-6 uppercase tracking-wider">
+              <Zap size={12} /> Gestión Comercial Multi-Sucursal
+            </div>
+            <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight mb-6">
+              Controla tu negocio <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">sin complicaciones</span>
             </h1>
-            <p className="text-xl lg:text-2xl text-white/90 mb-12 font-medium max-w-2xl mx-auto leading-relaxed">
-              La plataforma SaaS definitiva para la gestión de sucursales, inventarios inteligentes y facturación de alta disponibilidad.
+            <p className="text-lg sm:text-xl text-slate-400 mb-10 font-medium max-w-xl mx-auto leading-relaxed">
+              La plataforma administrativa SaaS definitiva para el control de inventario en tiempo real, alertas inteligentes y facturación electrónica.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link to="/register" className="bg-white text-blue-600 w-full sm:w-auto px-10 py-5 rounded-full font-black text-xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:-translate-y-1 transition-all">
-                EMPEZAR AHORA
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto px-8 py-3.5 rounded-lg font-semibold text-base shadow-lg shadow-indigo-600/10 transition-all duration-150 active:scale-[0.98]">
+                Comenzar gratis
               </Link>
-              <a href="#features" className="text-white border-2 border-white/30 hover:bg-white/10 w-full sm:w-auto px-10 py-5 rounded-full font-black text-xl transition-all">
-                VER FUNCIONES
+              <a href="#features" className="text-slate-300 border border-slate-800 hover:bg-slate-900 w-full sm:w-auto px-8 py-3.5 rounded-lg font-semibold text-base transition-all">
+                Ver Funcionalidades
               </a>
             </div>
           </div>
 
-          {/* Floating Device Mockups */}
-          <div className="mt-20 lg:mt-32 relative">
-             <div className="relative z-20 max-w-5xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-[0_30px_100px_rgba(0,0,0,0.3)] border-8 border-slate-900 overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
-                  <img src="/placeholder.svg" alt="Dashboard BolClick" className="w-full h-auto aspect-video object-cover" />
-                </div>
-             </div>
-             
-             {/* Secondary Mockups (Floating) */}
-             <div className="absolute -bottom-10 -left-4 lg:-left-20 z-30 w-40 lg:w-64 hidden sm:block">
-                <div className="bg-white rounded-3xl shadow-2xl border-4 border-slate-900 overflow-hidden transform -rotate-12">
-                   <img src="/placeholder.svg" alt="Mobile POS" className="w-full h-auto aspect-[9/19] object-cover" />
-                </div>
-             </div>
-             <div className="absolute top-0 -right-4 lg:-right-20 z-10 w-48 lg:w-80 hidden lg:block">
-                <div className="bg-white rounded-2xl shadow-2xl border-4 border-slate-900 overflow-hidden transform rotate-12 opacity-50">
-                   <img src="/placeholder.svg" alt="Tableta" className="w-full h-auto aspect-[4/3] object-cover" />
-                </div>
-             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Bar */}
-      <section className="bg-slate-50 py-12 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-           <p className="text-center text-slate-400 font-black text-sm uppercase tracking-widest mb-8">CONFIADO POR EMPRESAS LÍDERES</p>
-           <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-20 opacity-50 grayscale">
-              {/* Client Logo Placeholders */}
-              <div className="font-black text-2xl text-slate-900 italic">LOGOTIPO</div>
-              <div className="font-black text-2xl text-slate-900 italic">EMPRESA</div>
-              <div className="font-black text-2xl text-slate-900 italic">BRAND</div>
-              <div className="font-black text-2xl text-slate-900 italic">CORP</div>
-           </div>
-        </div>
-      </section>
-
-      {/* Features - PointMeUp Circles Style */}
-      <section id="features" className="py-24 lg:py-40 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row justify-between items-end mb-20 gap-8">
-            <div className="max-w-2xl">
-              <h2 className="text-4xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase italic leading-none mb-6">
-                Todo lo que <br/> <span className="text-blue-600 underline decoration-indigo-200">necesitas.</span>
-              </h2>
-              <p className="text-xl text-slate-500 font-medium">
-                Una suite completa diseñada para optimizar cada punto de contacto de tu negocio retail.
-              </p>
-            </div>
-            <Link to="/register" className="text-blue-600 font-black text-lg flex items-center gap-2 hover:gap-4 transition-all">
-              VER TODAS LAS FUNCIONES <ArrowRight size={24} />
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-            <DetailedFeatureCard 
-              icon={<TrendingUp size={40} className="text-white" />}
-              title="Salud Financiera"
-              description="Toma el control absoluto del rendimiento monetario de tu empresa en tiempo real, eliminando las conjeturas y basando tus decisiones estratégicas en métricas precisas."
-              features={[
-                "Cálculo automático de Utilidad Bruta y Márgenes.",
-                "Valorización dinámica de inventario al instante.",
-                "Auditorías financieras con cero discrepancias."
-              ]}
-            />
-            <DetailedFeatureCard 
-              icon={<Globe size={40} className="text-white" />}
-              title="Vista Consolidada"
-              description="Diseñado para dueños de múltiples sucursales. Monitorea el rendimiento comparativo de todos tus locales comerciales desde una única sala de control."
-              features={[
-                "Aislamiento de datos seguro por cada sucursal.",
-                "Filtros dinámicos de rendimiento y cruce de datos.",
-                "KPIs globales e individuales en una sola pantalla."
-              ]}
-            />
-            <DetailedFeatureCard 
-              icon={<Smartphone size={40} className="text-white" />}
-              title="Terminal POS"
-              description="Un facturador ágil, resistente e intuitivo. Construido para no detenerse nunca, garantizando que tus cajeros procesen ventas a máxima velocidad."
-              features={[
-                "Búsqueda predictiva y ultra-rápida por código o nombre.",
-                "Arquitectura de alta disponibilidad para picos de ventas.",
-                "Compatibilidad total (PC, Tablet y Terminal Móvil)."
-              ]}
-            />
-            <DetailedFeatureCard 
-              icon={<BookOpen size={40} className="text-white" />}
-              title="Catálogo Digital"
-              description="Olvídate del desorden. Unifica todos tus productos, variantes, categorías y costos en un núcleo de datos estructurado y escalable."
-              features={[
-                "Soporte nativo para variantes complejas (Talla/Color).",
-                "Gestión centralizada de márgenes y costos operativos.",
-                "Integración directa con tu red de proveedores."
-              ]}
-            />
-            <DetailedFeatureCard 
-              icon={<FileText size={40} className="text-white" />}
-              title="Comprobantes"
-              description="Automatiza la burocracia corporativa. Genera recibos digitales profesionales al instante, manteniendo un rastro de auditoría inmutable."
-              features={[
-                "Generación automática de PDFs descargables.",
-                "Historial inmutable para la prevención de fraudes (0 mermas fantasma).",
-                "Registro centralizado de transacciones por operador."
-              ]}
-            />
-            <DetailedFeatureCard 
-              icon={<Bell size={40} className="text-white" />}
-              title="Alertas Stock"
-              description="El sistema predictivo que trabaja por ti. Monitorea tus niveles de stock de forma proactiva y alerta antes de que pierdas una venta."
-              features={[
-                "Configuración precisa de stock mínimo por producto.",
-                "Alertas visuales tempranas de déficit de inventario.",
-                "Flujo ágil para generación de lotes de reabastecimiento."
-              ]}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Deep Section - Mall & Supervision */}
-      <section className="bg-slate-900 py-32 lg:py-48 overflow-hidden relative">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-20">
-            <div className="lg:w-1/2 relative z-10 text-center lg:text-left">
-               <div className="inline-block px-4 py-2 bg-blue-600 text-white font-black text-xs uppercase mb-8 rounded-md">POTENCIA MULTI-TENANT</div>
-               <h2 className="text-4xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-[0.95] mb-10">
-                 Supervisión Global <br/> <span className="text-blue-500">del Mall.</span>
-               </h2>
-               <p className="text-xl text-slate-400 font-medium leading-relaxed mb-12">
-                 Controla a todos tus locatarios y franquicias desde una consola maestra. Gestión de permisos, reportes agregados y aislamiento de datos garantizado.
-               </p>
-               <button className="bg-blue-600 text-white px-10 py-5 rounded-full font-black text-xl hover:bg-blue-700 transition-all shadow-2xl">
-                 RESERVAR DEMO
-               </button>
-            </div>
-            <div className="lg:w-1/2 w-full">
-               <div className="relative">
-                  <div className="bg-slate-800 rounded-3xl p-4 border border-slate-700 shadow-2xl">
-                     <img src="/placeholder.svg" alt="Mall Console" className="w-full h-auto rounded-xl opacity-80" />
+          {/* Simple Mockup Placeholder */}
+          <div className="mt-16 lg:mt-24 relative max-w-5xl mx-auto">
+            <div className="bg-slate-900 rounded-2xl p-2.5 shadow-2xl shadow-indigo-950/20 border border-slate-800 overflow-hidden">
+              <div className="bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center p-8">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Zap size={32} className="text-indigo-400" />
                   </div>
-                  {/* Decorative Elements */}
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-600/20 rounded-full blur-2xl"></div>
-               </div>
+                  <h3 className="text-lg font-bold text-white mb-1">BolClick Dashboard</h3>
+                  <p className="text-slate-500 text-sm max-w-sm">Haz login o regístrate para acceder al panel de facturación, lotes y sucursales en tiempo real.</p>
+                </div>
+              </div>
             </div>
-         </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section id="features" className="py-24 bg-white border-y border-slate-200/50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+              Diseñado para dueños de múltiples locales
+            </h2>
+            <p className="text-lg text-slate-600 font-medium leading-relaxed">
+              BolClick centraliza todas las operaciones críticas de tus sucursales en una interfaz unificada y fluida.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={<TrendingUp size={24} className="text-indigo-600" />}
+              title="Salud Financiera"
+              description="Toma decisiones estratégicas basándote en márgenes brutos de venta, costos y rentabilidad en tiempo real."
+            />
+            <FeatureCard 
+              icon={<Globe size={24} className="text-indigo-600" />}
+              title="Vista Consolidada"
+              description="Observa el desempeño global o aísla la información por sucursal específica con filtros dinámicos instantáneos."
+            />
+            <FeatureCard 
+              icon={<Smartphone size={24} className="text-indigo-600" />}
+              title="Terminal de Ventas POS"
+              description="Una interfaz ágil construida para no detenerse nunca, permitiendo facturación y cobros rápidos en segundos."
+            />
+            <FeatureCard 
+              icon={<BookOpen size={24} className="text-indigo-600" />}
+              title="Catálogo Centralizado"
+              description="Administra productos, variantes, precios de compra y venta desde un solo catálogo compartido para todas tus tiendas."
+            />
+            <FeatureCard 
+              icon={<FileText size={24} className="text-indigo-600" />}
+              title="Comprobantes Digitales"
+              description="Genera recibos y facturas en formato PDF al instante, guardándolos localmente para auditorías seguras."
+            />
+            <FeatureCard 
+              icon={<Bell size={24} className="text-indigo-600" />}
+              title="Alertas de Stock"
+              description="Alertas inteligentes automáticas que detectan el bajo stock por sucursal y facilitan órdenes de reabastecimiento."
+            />
+          </div>
+        </div>
       </section>
 
       {/* CTA Final */}
-      <section className="bg-blue-600 py-32 text-center">
-         <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-5xl lg:text-7xl font-black text-white tracking-tighter uppercase italic mb-10">
-              ¿Listo para dar <br/> el gran salto?
-            </h2>
-            <Link to="/register" className="bg-white text-blue-600 px-12 py-6 rounded-full font-black text-2xl shadow-2xl hover:scale-105 transition-transform">
-              CREAR CUENTA GRATIS
-            </Link>
-         </div>
+      <section className="bg-slate-950 py-24 text-center relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-indigo-600/10 blur-3xl"></div>
+        </div>
+        <div className="max-w-4xl mx-auto px-6 relative z-10">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-6">
+            Lleva el control de tus tiendas al siguiente nivel
+          </h2>
+          <p className="text-slate-400 text-lg mb-10 max-w-xl mx-auto">
+            Únete a cientos de comercios que optimizan su stock y facturación diariamente. Crea tu espacio de trabajo hoy mismo.
+          </p>
+          <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-lg font-semibold text-lg shadow-lg shadow-indigo-600/15 transition-all duration-150 active:scale-[0.98]">
+            Crear espacio de trabajo
+          </Link>
+        </div>
       </section>
 
-      {/* Footer PointMeUp Style */}
-      <footer className="bg-slate-50 py-20 border-t border-slate-200">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid md:grid-cols-4 gap-12 mb-16">
-               <div className="col-span-1 lg:col-span-2">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-lg">B</div>
-                    <span className="font-black text-xl tracking-tighter text-slate-900">BolClick</span>
-                  </div>
-                  <p className="text-slate-500 font-medium max-w-sm">
-                    La solución SaaS definitiva para el retail moderno. Escalabilidad, seguridad y control total de tus operaciones.
-                  </p>
-               </div>
-               <div>
-                  <h4 className="font-black text-slate-900 uppercase text-xs tracking-widest mb-6">PRODUCTO</h4>
-                  <ul className="space-y-4 text-slate-500 font-bold text-sm">
-                     <li className="hover:text-blue-600 cursor-pointer">Funciones</li>
-                     <li className="hover:text-blue-600 cursor-pointer">Sucursales</li>
-                     <li className="hover:text-blue-600 cursor-pointer">Seguridad</li>
-                  </ul>
-               </div>
-               <div>
-                  <h4 className="font-black text-slate-900 uppercase text-xs tracking-widest mb-6">CONTACTO</h4>
-                  <ul className="space-y-4 text-slate-500 font-bold text-sm">
-                     <li>info@bolclick.com</li>
-                     <li>Soporte 24/7</li>
-                     <li>Ventas</li>
-                  </ul>
-               </div>
+      {/* Footer */}
+      <footer className="bg-slate-50 py-16 border-t border-slate-200/60 text-slate-500">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8 mb-12">
+            <div className="col-span-1 lg:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center p-1.5 shadow-sm shadow-indigo-600/20">
+                  <img src="/logo.png" alt="BolClick Logo" className="w-full h-full object-contain filter invert brightness-200" />
+                </div>
+                <span className="font-bold text-lg tracking-tight text-slate-900">BolClick</span>
+              </div>
+              <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
+                La plataforma de gestión comercial SaaS diseñada para simplificar el retail de múltiples sucursales en Bolivia.
+              </p>
             </div>
-            <div className="pt-12 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
-               <p className="text-slate-400 font-bold text-sm">© {new Date().getFullYear()} BolClick Inc. Todos los derechos reservados.</p>
-               <div className="flex gap-6 text-slate-400 text-sm font-black uppercase tracking-widest">
-                  <span className="hover:text-slate-900 cursor-pointer">PRIVACIDAD</span>
-                  <span className="hover:text-slate-900 cursor-pointer">TÉRMINOS</span>
-               </div>
+            <div>
+              <h4 className="font-bold text-slate-900 text-xs tracking-wider uppercase mb-4">Producto</h4>
+              <ul className="space-y-2 text-sm">
+                <li className="hover:text-indigo-600 cursor-pointer transition-colors">Funcionalidades</li>
+                <li className="hover:text-indigo-600 cursor-pointer transition-colors">Sucursales</li>
+                <li className="hover:text-indigo-600 cursor-pointer transition-colors">Seguridad</li>
+              </ul>
             </div>
-         </div>
+            <div>
+              <h4 className="font-bold text-slate-900 text-xs tracking-wider uppercase mb-4">Contacto</h4>
+              <ul className="space-y-2 text-sm">
+                <li>info@bolclick.com</li>
+                <li>Soporte Técnico</li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-slate-200/50 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
+            <p>© {new Date().getFullYear()} BolClick. Todos los derechos reservados.</p>
+            <div className="flex gap-4 font-semibold text-slate-400 uppercase tracking-wider">
+              <span className="hover:text-slate-900 cursor-pointer transition-colors">PRIVACIDAD</span>
+              <span className="hover:text-slate-900 cursor-pointer transition-colors">TÉRMINOS</span>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );
 }
 
-// Subcomponent: Huge Detailed Feature Card
-function DetailedFeatureCard({ icon, title, description, features }) {
+// Subcomponent: Simple Clean Feature Card
+function FeatureCard({ icon, title, description }) {
   return (
-    <div className="bg-slate-50 rounded-[2.5rem] p-10 lg:p-14 border border-slate-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-6 lg:gap-8 mb-10">
-        <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 shadow-[0_15px_30px_rgba(37,99,235,0.4)]">
-          {icon}
-        </div>
-        <h3 className="text-3xl lg:text-4xl font-black text-slate-900 uppercase italic tracking-tighter leading-none">
-          {title}
-        </h3>
+    <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-6 transition-all duration-150 hover:border-slate-300 hover:shadow-sm">
+      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/60 flex items-center justify-center shadow-sm mb-4">
+        {icon}
       </div>
-      <p className="text-xl text-slate-600 font-medium leading-relaxed mb-10">
+      <h3 className="text-base font-bold text-slate-900 mb-2">
+        {title}
+      </h3>
+      <p className="text-sm text-slate-500 leading-relaxed">
         {description}
       </p>
-      <ul className="space-y-5">
-        {features.map((feat, i) => (
-          <li key={i} className="flex items-start gap-4">
-            <div className="mt-1 bg-emerald-100 p-1.5 rounded-full flex-shrink-0">
-               <ShieldCheck className="text-emerald-600" size={18} />
-            </div>
-            <span className="text-slate-700 font-medium text-lg leading-snug">{feat}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

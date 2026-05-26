@@ -6,13 +6,14 @@ import { useToast } from '../components/ToastContext';
 export default function AuditReportsPage() {
   const [ajustes, setAjustes] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [sucursales, setSucursales] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Advanced Reporting Filters
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedUser, setSelectedUser] = useState('ALL');
   const [selectedMotivo, setSelectedMotivo] = useState('ALL');
+  const [selectedSucursal, setSelectedSucursal] = useState('ALL');
 
   const toast = useToast();
 
@@ -23,12 +24,14 @@ export default function AuditReportsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resAj, resUsr] = await Promise.all([
+      const [resAj, resUsr, resSuc] = await Promise.all([
         api.get('/ajustes'),
-        api.get('/users').catch(() => ({ data: [] }))
+        api.get('/users').catch(() => ({ data: [] })),
+        api.get('/sucursales').catch(() => ({ data: [] }))
       ]);
       setAjustes(resAj.data);
       setUsuarios(resUsr.data);
+      setSucursales(resSuc.data);
     } catch (err) {
       console.error(err);
       toast.error('Error al descargar el registro analítico');
@@ -48,7 +51,6 @@ export default function AuditReportsPage() {
   };
 
   const filteredAjustes = ajustes.filter(a => {
-    // 1. Date Range
     let validDate = true;
     if (startDate && endDate) {
        const rowDate = new Date(a.fecha);
@@ -57,18 +59,19 @@ export default function AuditReportsPage() {
        end.setHours(23, 59, 59, 999);
        validDate = rowDate >= start && rowDate <= end;
     }
-    // 2. User
     let validUser = true;
     if (selectedUser !== 'ALL') {
        validUser = a.usuario_id === selectedUser;
     }
-    // 3. Motivo
     let validMotivo = true;
     if (selectedMotivo !== 'ALL') {
        validMotivo = a.motivo === selectedMotivo;
     }
-
-    return validDate && validUser && validMotivo;
+    let validSucursal = true;
+    if (selectedSucursal !== 'ALL') {
+       validSucursal = a.sucursal_id === selectedSucursal;
+    }
+    return validDate && validUser && validMotivo && validSucursal;
   });
 
   const totalFilteredLoss = filteredAjustes.reduce((acc, a) => acc + Number(a.valor_perdido || 0), 0);
@@ -76,121 +79,222 @@ export default function AuditReportsPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   return (
-    <div className="glass-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.3s ease' }}>
+    <div className="space-y-5 animate-fadein">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h3 style={{ marginTop: 0, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ClipboardList size={24} color="var(--primary-color)" /> Registro Analítico de Auditorías
-          </h3>
-          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Dashboard unificado para el análisis histórico y seguimiento del déficit de inventario.</p>
-        </div>
-        <button onClick={() => setShowFilters(!showFilters)} style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '8px' }}>
-          <Filter size={18} /> {showFilters ? 'Ocultar Filtros Avanzados' : 'Filtrar Reporte'}
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center">
+          <ClipboardList size={18} strokeWidth={1.75} className="text-slate-400 mr-2" />
+          Registro Analítico de Ajustes
+        </h1>
+        <button
+          className="btn-secondary btn-sm"
+          onClick={() => setShowFilters(prev => !prev)}
+        >
+          <Filter size={14} className="mr-1.5" />
+          Filtros
         </button>
       </div>
 
-      {/* KPI Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-         <div style={{ backgroundColor: '#fef2f2', padding: '1.25rem', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #fecaca' }}>
-            <div>
-              <span style={{ color: '#991b1b', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Valuación de Déficit (En Base a Filtros):</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#b91c1c' }}>
-                  Bs. {totalFilteredLoss.toFixed(2)}
-                </span>
-              </div>
-            </div>
-         </div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Loss Card */}
+        <div className="card border-l-4 border-rose-400">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            Pérdida Total Estimada
+          </span>
+          <p className="text-2xl font-bold text-rose-600 mt-1 font-mono">
+            ${totalFilteredLoss.toFixed(2)}
+          </p>
+        </div>
 
-         <div style={{ backgroundColor: '#f1f5f9', padding: '1.25rem', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #cbd5e1' }}>
-            <div>
-              <span style={{ color: 'var(--text-secondary)', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Incidencias Detectadas:</span>
-              <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>
-                {filteredAjustes.length} Registros
-              </span>
-            </div>
-         </div>
+        {/* Count Card */}
+        <div className="card border-l-4 border-blue-400">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            Ajustes Encontrados
+          </span>
+          <p className="text-2xl font-bold text-blue-700 mt-1 font-mono">
+            {filteredAjustes.length}
+          </p>
+        </div>
       </div>
 
-      {/* Advanced Filters */}
+      {/* Filters Panel */}
       {showFilters && (
-        <div style={{ padding: '1rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem', animation: 'fadeIn 0.2s ease' }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Filter size={18} color="var(--text-secondary)" />
-              <strong style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Filtros:</strong>
-           </div>
-           
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Desde:</label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
-           </div>
+        <div className="card animate-fadein">
+          <div className="flex flex-wrap gap-3 items-end">
+            {/* Start Date */}
+            <div className="flex flex-col gap-1 min-w-[160px]">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Fecha Inicio
+              </span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
 
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Hasta:</label>
-              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
-           </div>
+            {/* End Date */}
+            <div className="flex flex-col gap-1 min-w-[160px]">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Fecha Fin
+              </span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
 
-           <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
-              <option value="ALL">Cualquier Operador</option>
-              {usuarios.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-           </select>
+            {/* User Filter */}
+            <div className="flex flex-col gap-1 min-w-[160px]">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Operador
+              </span>
+              <select
+                value={selectedUser}
+                onChange={e => setSelectedUser(e.target.value)}
+                className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500 w-full"
+              >
+                <option value="ALL">Todos</option>
+                {usuarios.map(u => (
+                  <option key={u.id} value={u.id}>{u.nombre || u.email}</option>
+                ))}
+              </select>
+            </div>
 
-           <select value={selectedMotivo} onChange={e => setSelectedMotivo(e.target.value)} style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
-              <option value="ALL">Cualquier Categoría</option>
-              <option value="ERROR_REGISTRO">Error de Registro</option>
-              <option value="DANO_MERMA">Artículo Dañado / Extraviado</option>
-              <option value="ROBO_O_PERDIDA">Robo / No Habido</option>
-              <option value="CADUCIDAD">Vencido</option>
-           </select>
+            {/* Motivo Filter */}
+            <div className="flex flex-col gap-1 min-w-[160px]">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Motivo
+              </span>
+              <select
+                value={selectedMotivo}
+                onChange={e => setSelectedMotivo(e.target.value)}
+                className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500 w-full"
+              >
+                <option value="ALL">Todos</option>
+                <option value="ERROR_REGISTRO">Error de Registro</option>
+                <option value="DANO_MERMA">Artículo Dañado / Extraviado</option>
+                <option value="ROBO_O_PERDIDA">Robo / No Habido</option>
+                <option value="CADUCIDAD">Vencido</option>
+              </select>
+            </div>
 
-           <button 
-             onClick={() => { setStartDate(''); setEndDate(''); setSelectedUser('ALL'); setSelectedMotivo('ALL'); }}
-             style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', background: 'transparent', border: '1px solid #cbd5e1', color: 'var(--text-secondary)' }}
-           >
+            {/* Sucursal Filter */}
+            <div className="flex flex-col gap-1 min-w-[160px]">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Sucursal
+              </span>
+              <select
+                value={selectedSucursal}
+                onChange={e => setSelectedSucursal(e.target.value)}
+                className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500 w-full"
+              >
+                <option value="ALL">Todas</option>
+                {sucursales.map(s => (
+                  <option key={s.id} value={s.id}>{s.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Clear Button */}
+            <button
+              className="btn-secondary btn-sm self-end"
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+                setSelectedUser('ALL');
+                setSelectedMotivo('ALL');
+                setSelectedSucursal('ALL');
+              }}
+            >
               Limpiar
-           </button>
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Main Report Table */}
-      <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: '#fff' }}>
-        <table style={{ margin: 0 }}>
+      {/* Table */}
+      <div className="data-table-wrapper">
+        <table>
           <thead>
             <tr>
-              <th>Fecha y Hora</th>
-              <th>Producto Afectado</th>
-              <th>Ubicación</th>
-              <th>Operador Técnico</th>
-              <th style={{ textAlign: 'center' }}>Diferencia Fija</th>
-              <th>Categoría Judicial</th>
-              <th style={{ textAlign: 'right' }}>Déficit Financiero</th>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Sucursal</th>
+              <th>Operador</th>
+              <th className="text-center">Delta</th>
+              <th>Categoría</th>
+              <th className="text-right">Déficit Est.</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Sincronizando auditorías...</td></tr>
+              <tr>
+                <td colSpan={7} className="loading-state">
+                  Cargando registros…
+                </td>
+              </tr>
             ) : filteredAjustes.length === 0 ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>No existen incidencias que coincidan con estos filtros.</td></tr>
+              <tr>
+                <td colSpan={7} className="empty-state">
+                  <div className="empty-state-icon">
+                    <ClipboardList size={20} className="text-slate-400" />
+                  </div>
+                  <p>No se encontraron ajustes con los filtros aplicados.</p>
+                </td>
+              </tr>
             ) : (
-                 filteredAjustes.slice(0).reverse().map(a => {
-                    const deltaVal = a.cantidad_fisica - a.cantidad_sistema;
-                    return (
-                      <tr key={a.id}>
-                        <td style={{ color: 'var(--text-secondary)' }}>{new Date(a.fecha).toLocaleString()}</td>
-                        <td style={{ fontWeight: '500' }}>{a.producto?.name || 'SKU D/C'}</td>
-                        <td style={{ color: 'var(--text-secondary)' }}><MapPin size={12}/> {a.sucursal?.name}</td>
-                        <td>{a.usuario?.name || 'Operador'}</td>
-                        <td style={{ textAlign: 'center' }}>
-                           <span style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', backgroundColor: deltaVal < 0 ? '#fee2e2' : '#dcfce3', color: deltaVal < 0 ? '#991b1b' : '#166534', fontWeight: 'bold' }}>
-                              {deltaVal === 0 ? 'Sin Cambios' : (deltaVal > 0 ? `+${deltaVal}` : deltaVal)} U
-                           </span>
-                        </td>
-                        <td><span style={{ fontSize: '0.8rem', backgroundColor: '#f1f5f9', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{formatMotivo(a.motivo)}</span></td>
-                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#b91c1c' }}>Bs. {Number(a.valor_perdido || 0).toFixed(2)}</td>
-                      </tr>
-                    );
-                 })
+              filteredAjustes.map(a => {
+                const deltaVal = Number(a.delta ?? 0);
+                return (
+                  <tr key={a.id}>
+                    <td className="text-sm text-slate-500 whitespace-nowrap">
+                      {new Date(a.fecha).toLocaleDateString('es-MX', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
+                    </td>
+                    <td className="font-medium text-slate-800">
+                      {a.producto_nombre || a.producto_id}
+                    </td>
+                    <td className="text-sm text-slate-500">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={12} />
+                        {a.sucursal_nombre || a.sucursal_id}
+                      </span>
+                    </td>
+                    <td className="text-sm text-slate-700">
+                      {a.usuario_nombre || a.usuario_id}
+                    </td>
+                    <td className="text-center">
+                      <span
+                        className={
+                          deltaVal < 0
+                            ? 'badge error text-xs'
+                            : deltaVal > 0
+                            ? 'badge success text-xs'
+                            : 'badge neutral text-xs'
+                        }
+                      >
+                        {deltaVal > 0 ? `+${deltaVal}` : deltaVal}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="badge neutral text-xs">
+                        {formatMotivo(a.motivo)}
+                      </span>
+                    </td>
+                    <td className="text-right font-semibold text-rose-600 font-mono text-sm">
+                      ${Number(a.valor_perdido || 0).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

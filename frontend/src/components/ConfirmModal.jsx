@@ -7,35 +7,28 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div style={{ backgroundColor: '#fee2e2', padding: '0.5rem', borderRadius: '50%' }}>
-            <AlertTriangle color="var(--danger-color)" size={24} />
+        {/* Icon + Title */}
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle size={18} className="text-rose-500" strokeWidth={1.75} />
           </div>
-          <h3 style={{ margin: 0, color: 'var(--primary-color)' }}>{title}</h3>
+          <div className="pt-0.5">
+            <h3 className="text-sm font-semibold text-slate-900 leading-tight">{title}</h3>
+          </div>
         </div>
-        
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+
+        {/* Message */}
+        <p className="text-sm text-slate-500 leading-relaxed mb-6 pl-12">
           {message}
         </p>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-          <button 
-            onClick={onCancel} 
-            style={{ 
-              backgroundColor: 'white', 
-              color: 'var(--text-secondary)', 
-              border: '1px solid var(--border-color)',
-            }}
-          >
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-2.5">
+          <button onClick={onCancel} className="btn-secondary btn-sm">
             Cancelar
           </button>
-          <button 
-            onClick={onConfirm} 
-            style={{ 
-              backgroundColor: 'var(--danger-color)'
-            }}
-          >
-             Eliminar
+          <button onClick={onConfirm} className="btn-danger btn-sm">
+            Confirmar
           </button>
         </div>
       </div>

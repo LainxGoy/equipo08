@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { PackageSearch, Plus, X, Loader2, Edit2, Trash2, AlertTriangle } from 'lucide-react';
+import { PackageSearch, Plus, X, Loader2, Edit2, Trash2, AlertTriangle, Tag } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -75,8 +75,6 @@ export default function ProductsPage() {
     }
   };
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -118,54 +116,76 @@ export default function ProductsPage() {
   const isLoss = currentMargin < 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="space-y-6">
       
       {/* Header and Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 style={{ margin: 0 }}>Catálogo de Artículos</h2>
-          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Administra tu lista de productos e inventario disponible.</p>
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Tag size={22} className="text-indigo-600" />
+            <span>Catálogo de Artículos</span>
+          </h2>
+          <p className="text-slate-500 text-xs mt-0.5">Administra tu lista de productos de catálogo, categorías y costos.</p>
         </div>
         {hasPermission('catalogo_crear') && (
           <button 
             onClick={showForm ? resetForm : () => setShowForm(true)} 
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.5rem', 
-              backgroundColor: showForm ? 'var(--text-secondary)' : 'var(--accent-blue)' 
-            }}
+            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+              showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
           >
-            {showForm ? <><X size={18} /> Cancelar</> : <><Plus size={18} /> Añadir al Catálogo</>}
+            {showForm ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Añadir al Catálogo</>}
           </button>
         )}
       </div>
 
       {/* Expandable Form Section */}
       {showForm && (
-        <div className="glass-container" style={{ animation: 'fadeIn 0.3s ease' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            {editingId ? 'Editar Artículo' : 'Nuevo Artículo'}
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 mb-6">
+            {editingId ? 'Editar Artículo de Catálogo' : 'Añadir Nuevo Artículo'}
           </h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-grid">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               
               <div className="form-group">
-                <label>Nombre del Producto *</label>
-                <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required placeholder="Ej. Coca-Cola, Zapatillas Nike" />
+                <label htmlFor="prod-name">Nombre del Producto *</label>
+                <input 
+                  id="prod-name"
+                  type="text" 
+                  value={formData.name} 
+                  onChange={e => setFormData({...formData, name: e.target.value})} 
+                  required 
+                  placeholder="Ej. Coca-Cola 3L, Camisa Denim" 
+                />
               </div>
 
               <div className="form-group">
-                <label>Variante / Especificación (Opcional)</label>
-                <input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Ej. Zero 500ml, Talla M, etc." />
+                <label htmlFor="prod-desc">Variante / Especificación</label>
+                <input 
+                  id="prod-desc"
+                  type="text" 
+                  value={formData.description} 
+                  onChange={e => setFormData({...formData, description: e.target.value})} 
+                  placeholder="Ej. Zero Calorías, Talla M, Color Negro" 
+                />
               </div>
 
               <div className="form-group">
-                <label>SKU (Código Interno) *</label>
-                <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value.toUpperCase()})} required placeholder="ZAP-NK-01" />
+                <label htmlFor="prod-sku">SKU (Código Único) *</label>
+                <input 
+                  id="prod-sku"
+                  type="text" 
+                  value={formData.sku} 
+                  onChange={e => setFormData({...formData, sku: e.target.value.toUpperCase()})} 
+                  required 
+                  placeholder="Ej. BEB-CC-3L" 
+                />
               </div>
 
               <div className="form-group">
-                <label>Categoría Global *</label>
-                <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                <label htmlFor="prod-category">Categoría Global *</label>
+                <select id="prod-category" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
                   <option value="Abarrotes y Alimentos">Abarrotes y Alimentos</option>
                   <option value="Bebidas">Bebidas</option>
                   <option value="Ropa y Moda">Ropa y Moda</option>
@@ -183,38 +203,69 @@ export default function ProductsPage() {
               </div>
 
               <div className="form-group">
-                <label>Precio Costo (Bs)</label>
-                <input type="number" step="0.1" value={formData.precioCosto} onChange={e => setFormData({...formData, precioCosto: e.target.value})} placeholder="0.00" />
-              </div>
-              <div className="form-group">
-                <label>Precio Venta (Bs)</label>
-                <input type="number" step="0.1" value={formData.precioVenta} onChange={e => setFormData({...formData, precioVenta: e.target.value})} placeholder="0.00" />
-              </div>
-              <div className="form-group">
-                <label>Stock Mínimo (Alerta)</label>
-                <input type="number" min="0" value={formData.stockMinimo} onChange={e => setFormData({...formData, stockMinimo: e.target.value})} required placeholder="Ej. 10" />
+                <label htmlFor="prod-cost">Precio Costo Adquisición (Bs)</label>
+                <input 
+                  id="prod-cost"
+                  type="number" 
+                  step="0.1" 
+                  value={formData.precioCosto} 
+                  onChange={e => setFormData({...formData, precioCosto: e.target.value})} 
+                  placeholder="0.00" 
+                />
               </div>
 
               <div className="form-group">
-                <label>Proveedor Habitual *</label>
-                <select required value={formData.proveedor_id} onChange={e => setFormData({...formData, proveedor_id: e.target.value})}>
+                <label htmlFor="prod-sale">Precio de Venta Sugerido (Bs)</label>
+                <input 
+                  id="prod-sale"
+                  type="number" 
+                  step="0.1" 
+                  value={formData.precioVenta} 
+                  onChange={e => setFormData({...formData, precioVenta: e.target.value})} 
+                  placeholder="0.00" 
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="prod-min">Stock Mínimo Alerta *</label>
+                <input 
+                  id="prod-min"
+                  type="number" 
+                  min="0" 
+                  value={formData.stockMinimo} 
+                  onChange={e => setFormData({...formData, stockMinimo: e.target.value})} 
+                  required 
+                  placeholder="10" 
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="prod-prov">Proveedor Habitual *</label>
+                <select id="prod-prov" required value={formData.proveedor_id} onChange={e => setFormData({...formData, proveedor_id: e.target.value})}>
                   <option value="">-- Seleccione proveedor --</option>
                   {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Margen de Ganancia %</label>
-                <div style={{ display: 'flex', alignItems: 'center', height: '40px', padding: '0 1rem', backgroundColor: isLoss ? '#fef2f2' : '#f1f5f9', color: isLoss ? '#dc2626' : 'var(--text-primary)', borderRadius: '6px', fontWeight: 'bold' }}>
-                  {isLoss && <AlertTriangle size={16} style={{ marginRight: '0.5rem' }}/>}
-                  {currentMargin}% {isLoss ? '(Pérdida Matemática)' : ''}
+                <label>Margen de Utilidad</label>
+                <div className={`h-[38px] px-3.5 flex items-center gap-1.5 rounded-lg text-xs font-bold ${
+                  isLoss ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-slate-50 text-slate-700 border border-slate-200'
+                }`}>
+                  {isLoss ? <AlertTriangle size={14} className="text-rose-500" /> : null}
+                  <span>{currentMargin}% {isLoss ? '(Pérdida Declarada)' : 'de margen de ganancia'}</span>
                 </div>
               </div>
 
             </div>
-            <div className="form-actions">
-              <button type="submit" disabled={isLoss} style={isLoss ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
-                {editingId ? 'Guardar Cambios' : 'Anexar Artículo'}
+            
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6">
+              <button 
+                type="submit" 
+                disabled={isLoss} 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs py-2 px-4 font-bold"
+              >
+                {editingId ? 'Guardar Cambios' : 'Ingresar al Catálogo'}
               </button>
             </div>
           </form>
@@ -222,77 +273,98 @@ export default function ProductsPage() {
       )}
 
       {/* Table Section */}
-      <div className="glass-container" style={{ padding: '0', overflow: 'hidden' }}>
-        {loading ? <div style={{ padding: '3rem', textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="var(--accent-blue)" style={{ margin: '0 auto' }} /></div> : (
-          <table>
-            <thead>
-              <tr style={{ color: 'var(--text-secondary)' }}>
-                <th>Nombre del artículo</th>
-                <th>Categoría</th>
-                <th>Proveedor</th>
-                <th style={{ textAlign: 'right' }}>Stock Min.</th>
-                <th style={{ textAlign: 'right' }}>Precio Compra</th>
-                <th style={{ textAlign: 'right' }}>Precio Venta</th>
-                <th style={{ textAlign: 'right', width: '80px' }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.length === 0 ? (
+      <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+        {loading ? (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <Loader2 className="animate-spin text-indigo-600 mb-2" size={28} />
+            <p className="text-xs text-slate-500 font-semibold">Cargando catálogo...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                    <PackageSearch size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} /><br/>
-                    Aún no hay productos en el catálogo.
-                  </td>
+                  <th>Artículo</th>
+                  <th>Categoría</th>
+                  <th>Proveedor Habitual</th>
+                  <th className="text-right">Stock Mínimo</th>
+                  <th className="text-right">Precio Costo</th>
+                  <th className="text-right">Precio Venta</th>
+                  <th className="text-center w-24">Acciones</th>
                 </tr>
-              ) : products.map(p => {
-                return (
-                  <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: '500', color: '#1f2937' }}>{p.name}</span>
-                      {p.description && (
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px', marginBottom: '2px' }}>
-                          Variante: {p.description}
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem' }}>
-                        <span style={{ color: '#94a3b8' }}>SKU: {p.sku}</span>
+              </thead>
+              <tbody>
+                {products.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="text-center py-16 text-slate-400 font-medium">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <PackageSearch size={28} className="text-slate-300" />
+                        <span>Aún no hay productos en el catálogo comercial.</span>
                       </div>
-                    </td>
-                    <td style={{ color: '#64748b' }}>
-                      <div>{p.category || 'Otros'}</div>
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                         {p.proveedor?.name || 'Huérfano'}
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'right', color: 'var(--danger-color)', fontWeight: 'bold' }}>{p.stockMinimo || 0}</td>
-                    <td style={{ textAlign: 'right', fontFamily: 'monospace' }}>Bs {Number(p.precioCosto).toFixed(2)}</td>
-                    <td style={{ textAlign: 'right', fontFamily: 'monospace' }}>Bs {Number(p.precioVenta).toFixed(2)}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      {hasPermission('catalogo_editar') && (
-                        <button onClick={() => handleEdit(p)} style={{ padding: '0.25rem', background: 'none', color: '#64748b' }} title="Editar">
-                          <Edit2 size={16} />
-                        </button>
-                      )}
-                      {hasPermission('catalogo_eliminar') && (
-                        <button onClick={() => handleDelete(p.id)} style={{ padding: '0.25rem', background: 'none', color: 'var(--danger-color)', marginLeft: '0.5rem' }} title="Dar de baja">
-                          <Trash2 size={16} />
-                        </button>
-                      )}
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ) : (
+                  products.map(p => (
+                    <tr key={p.id}>
+                      <td>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-semibold text-slate-800">{p.name}</span>
+                          {p.description ? (
+                            <span className="text-[10px] text-slate-400 font-semibold">Var: {p.description}</span>
+                          ) : null}
+                          <span className="font-mono text-[9px] text-slate-400 font-semibold">SKU: {p.sku}</span>
+                        </div>
+                      </td>
+                      <td className="text-slate-500 text-xs font-semibold">
+                        {p.category || 'Otros'}
+                      </td>
+                      <td className="text-slate-500 text-xs">
+                        {p.proveedor?.name || 'Huérfano'}
+                      </td>
+                      <td className="text-right text-xs font-bold text-rose-500">
+                        {p.stockMinimo || 0} U.
+                      </td>
+                      <td className="text-right font-mono text-xs text-slate-600">
+                        Bs {Number(p.precioCosto).toFixed(2)}
+                      </td>
+                      <td className="text-right font-mono text-xs text-slate-800 font-semibold">
+                        Bs {Number(p.precioVenta).toFixed(2)}
+                      </td>
+                      <td className="text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {hasPermission('catalogo_editar') && (
+                            <button 
+                              onClick={() => handleEdit(p)} 
+                              className="p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg hover:border-slate-350 border border-transparent transition-all"
+                              title="Editar"
+                            >
+                              <Edit2 size={12} />
+                            </button>
+                          )}
+                          {hasPermission('catalogo_eliminar') && (
+                            <button 
+                              onClick={() => handleDelete(p.id)} 
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all"
+                              title="Eliminar"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <ConfirmModal 
         isOpen={!!confirmDelete}
-        title="Dar de Baja Artículo"
-        message="¿Estás seguro que deseas eliminar permanentemente este producto del catálogo? Esta acción no puede deshacerse."
+        title="Eliminar Producto"
+        message="¿Estás seguro que deseas dar de baja permanentemente este producto del catálogo comercial? Esta acción no puede revertirse."
         onConfirm={proceedDelete}
         onCancel={() => setConfirmDelete(null)}
       />

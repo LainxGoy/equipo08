@@ -14,21 +14,34 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
 import { ToastProvider } from './components/ToastContext';
-import { Settings, Users, Package, ShoppingCart, LogOut, Tag, Archive, Store, ShieldCheck, UserPlus, BarChart, Receipt } from 'lucide-react';
+import {
+  Users, Package, ShoppingCart, LogOut, Tag, Archive,
+  Store, ShieldCheck, UserPlus, BarChart2, Receipt, LayoutDashboard
+} from 'lucide-react';
 import './index.css';
 
+/* ─── NAV ITEM ─────────────────────────────────────────────────── */
+function NavItem({ to, icon: Icon, label, active }) {
+  return (
+    <Link to={to} className={`nav-link ${active ? 'active' : ''}`}>
+      <Icon size={16} strokeWidth={1.75} />
+      <span>{label}</span>
+    </Link>
+  );
+}
+
+/* ─── SIDEBAR ──────────────────────────────────────────────────── */
 function Sidebar({ setAuthToken, permissions }) {
   const location = useLocation();
-  const tenantName = localStorage.getItem('tenant_name') || 'Mi Tienda';
-  const userName = localStorage.getItem('user_name') || 'Usuario';
-  const userRole = localStorage.getItem('user_role') || 'VENDEDOR';
+  const tenantName = localStorage.getItem('tenant_name') || 'Mi Empresa';
+  const userName   = localStorage.getItem('user_name')   || 'Usuario';
+  const userRole   = localStorage.getItem('user_role')   || 'VENDEDOR';
 
   const handleLogout = () => {
     localStorage.clear();
     setAuthToken(null);
   };
 
-  // Helper to check if a permission exists in our list
   const hasPerm = (key) => {
     if (userRole === 'OWNER') return true;
     if (!permissions) return false;
@@ -36,104 +49,115 @@ function Sidebar({ setAuthToken, permissions }) {
     return p ? p[key.replace('.', '_')] : false;
   };
 
+  const p = location.pathname;
+
+  const initials = userName
+    .split(' ')
+    .map(w => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
-    <div className="sidebar" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-        <div style={{ width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', border: '1px solid var(--border-color)' }}>
-          <img src="/logo.png" alt="BolClick Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+    <div className="sidebar">
+      {/* ── Top scroll area ── */}
+      <div className="flex flex-col gap-5 flex-1 overflow-y-auto p-4">
+
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 px-1 pt-1">
+          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-700 shadow-sm flex-shrink-0">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-white leading-tight tracking-tight">BolClick</div>
+            <div className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider leading-tight truncate">{tenantName}</div>
+          </div>
         </div>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#ffffff' }}>BolClick</h2>
-          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', fontWeight: '600', textTransform: 'uppercase' }}>{tenantName}</span>
+
+        {/* User chip */}
+        <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg bg-slate-900 border border-slate-800">
+          <div className="user-avatar text-[11px]">{initials}</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-semibold text-slate-100 truncate leading-tight">{userName}</div>
+            <div className="text-[10px] font-medium text-slate-500 uppercase tracking-wide mt-0.5">{userRole}</div>
+          </div>
         </div>
+
+        {/* Navigation */}
+        <nav className="flex flex-col gap-0.5">
+
+          {hasPerm('catalogo.ver') && (
+            <NavItem to="/providers"   icon={Users}      label="Proveedores"        active={p === '/providers'} />
+          )}
+          {hasPerm('sucursales.ver') && (
+            <NavItem to="/sucursales"  icon={Store}      label="Sucursales"         active={p === '/sucursales'} />
+          )}
+          {hasPerm('catalogo.ver') && (
+            <NavItem to="/products"    icon={Tag}        label="Catálogo"           active={p === '/products'} />
+          )}
+          {hasPerm('sourcing.ver') && (
+            <NavItem to="/sourcing"    icon={ShoppingCart} label="Entradas (Sourcing)" active={p === '/sourcing'} />
+          )}
+
+          <NavItem to="/sales" icon={Receipt} label="Facturación y Ventas" active={p === '/sales'} />
+
+          {hasPerm('inventario.ver') && (
+            <>
+              <NavItem to="/stock"         icon={Archive}   label="Inventario Físico"   active={p === '/stock'} />
+              <NavItem to="/audit-reports" icon={BarChart2} label="Auditoría"           active={p === '/audit-reports'} />
+            </>
+          )}
+
+          {userRole === 'OWNER' && (
+            <>
+              <div className="h-px bg-slate-800 my-2" />
+              <span className="nav-section-label">Administración</span>
+              <NavItem to="/users"       icon={UserPlus}    label="Empleados"   active={p === '/users'} />
+              <NavItem to="/permissions" icon={ShieldCheck} label="Permisos"    active={p === '/permissions'} />
+            </>
+          )}
+        </nav>
       </div>
 
-      <div style={{ padding: '0.75rem', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.2)' }}>
-        <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'white' }}>{userName}</div>
-        <div style={{ fontSize: '0.7rem', color: '#93c5fd', fontWeight: 'bold', textTransform: 'uppercase' }}>{userRole}</div>
-      </div>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
-        {hasPerm('catalogo.ver') && (
-          <Link to="/providers" className={`nav-link ${location.pathname === '/providers' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Users size={18} /> Proveedores
-          </Link>
-        )}
-        
-        {hasPerm('sucursales.ver') && (
-          <Link to="/sucursales" className={`nav-link ${location.pathname === '/sucursales' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Store size={18} /> Sucursales
-          </Link>
-        )}
-
-        {hasPerm('catalogo.ver') && (
-          <Link to="/products" className={`nav-link ${location.pathname === '/products' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Tag size={18} /> Catálogo
-          </Link>
-        )}
-
-        {hasPerm('sourcing.ver') && (
-          <Link to="/sourcing" className={`nav-link ${location.pathname === '/sourcing' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <ShoppingCart size={18} /> Lotes (Sourcing)
-          </Link>
-        )}
-
-        <Link to="/sales" className={`nav-link ${location.pathname === '/sales' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Receipt size={18} /> Facturación y Ventas
-        </Link>
-
-        {hasPerm('inventario.ver') && (
-          <>
-            <Link to="/stock" className={`nav-link ${location.pathname === '/stock' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <Archive size={18} /> Inventario Físico
-            </Link>
-            <Link to="/audit-reports" className={`nav-link ${location.pathname === '/audit-reports' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <BarChart size={18} /> Reportes de Auditoría
-            </Link>
-          </>
-        )}
-
-        {userRole === 'OWNER' && (
-          <>
-            <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.2)', margin: '1rem 0' }} />
-            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', padding: '0 0.75rem', marginBottom: '0.5rem', fontWeight: 'bold' }}>ADMINISTRACIÓN</span>
-            
-            <Link to="/users" className={`nav-link ${location.pathname === '/users' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <UserPlus size={18} /> Empleados
-            </Link>
-
-            <Link to="/permissions" className={`nav-link ${location.pathname === '/permissions' ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <ShieldCheck size={18} /> Permisos
-            </Link>
-          </>
-        )}
-      </div>
-
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '1rem', marginTop: 'auto' }}>
-        <button 
+      {/* ── Logout ── */}
+      <div className="p-3 border-t border-slate-800">
+        <button
           onClick={handleLogout}
-          style={{ 
-            backgroundColor: 'transparent', 
-            color: 'rgba(255,255,255,0.8)', 
-            width: '100%', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.75rem',
-            padding: '0.75rem 1rem',
-            textAlign: 'left',
-            borderRadius: '6px',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseOver={e => { e.currentTarget.style.backgroundColor = '#ef4444'; e.currentTarget.style.color = '#ffffff'; }}
-          onMouseOut={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
+          className="w-full flex items-center justify-center gap-2 h-9 px-3 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/20 border border-transparent hover:border-rose-900/30 text-xs font-semibold transition-all duration-150"
         >
-          <LogOut size={18} /> Cerrar Sesión
+          <LogOut size={14} strokeWidth={2} />
+          Cerrar Sesión
         </button>
       </div>
     </div>
   );
 }
 
+/* ─── DASHBOARD HOME ────────────────────────────────────────────── */
+function DashboardHome() {
+  const userName = localStorage.getItem('user_name') || 'Usuario';
+  const userRole = localStorage.getItem('user_role') || 'VENDEDOR';
+
+  return (
+    <div className="max-w-xl mx-auto mt-16">
+      <div className="card text-center p-10">
+        <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-5">
+          <LayoutDashboard size={22} className="text-blue-600" strokeWidth={1.75} />
+        </div>
+        <h1 className="text-xl font-bold text-slate-900 mb-1.5 tracking-tight">Panel de Control</h1>
+        <p className="text-sm text-slate-500 mb-5 leading-relaxed">
+          Bienvenido, <span className="font-semibold text-slate-800">{userName}</span>.<br />
+          Usa la barra lateral para navegar entre los módulos del sistema.
+        </p>
+        <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 uppercase tracking-wider">
+          Rol: {userRole}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── APP ROOT ──────────────────────────────────────────────────── */
 function App() {
   const [authToken, setAuthToken] = useState(localStorage.getItem('access_token'));
   const [permissions, setPermissions] = useState(null);
@@ -149,7 +173,7 @@ function App() {
       const res = await api.get('/users/permissions');
       setPermissions(res.data);
     } catch (err) {
-      console.error("Error fetching permissions", err);
+      console.error('Error fetching permissions', err);
     }
   };
 
@@ -158,42 +182,28 @@ function App() {
       <Router>
         {!authToken ? (
           <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage setAuthToken={setAuthToken} />} />
+            <Route path="/"         element={<LandingPage />} />
+            <Route path="/login"    element={<LoginPage    setAuthToken={setAuthToken} />} />
             <Route path="/register" element={<RegisterPage setAuthToken={setAuthToken} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*"         element={<Navigate to="/" replace />} />
           </Routes>
         ) : (
           <div className="app-layout">
             <Sidebar setAuthToken={setAuthToken} permissions={permissions} />
             <div className="main-content">
-              
               <Routes>
-                <Route path="/" element={
-                  <div className="glass-container" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-                    <Package size={48} color="var(--accent-blue)" style={{ marginBottom: '1rem' }} />
-                    <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>Resumen de Operaciones</h2>
-                    <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto' }}>
-                      Bienvenido al sistema, {localStorage.getItem('user_name')}. Tienes el rol de {localStorage.getItem('user_role')}.
-                    </p>
-                  </div>
-                } />
-                
-                <Route path="/providers" element={<ProvidersPage key={authToken} />} />
-                <Route path="/sucursales" element={<SucursalesPage key={authToken} />} />
-                <Route path="/products" element={<ProductsPage key={authToken} />} />
-                <Route path="/sourcing" element={<SourcingPage key={authToken} />} />
-                <Route path="/sales" element={<SalesPage key={authToken} />} />
-                <Route path="/stock" element={<StockPage key={authToken} />} />
-                <Route path="/audit-reports" element={<AuditReportsPage key={authToken} />} />
-                
-                {/* Admin Routes */}
-                <Route path="/users" element={<UsersPage key={authToken} />} />
-                <Route path="/permissions" element={<PermissionsPage key={authToken} />} />
-
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/"              element={<DashboardHome />} />
+                <Route path="/providers"     element={<ProvidersPage     key={authToken} />} />
+                <Route path="/sucursales"    element={<SucursalesPage    key={authToken} />} />
+                <Route path="/products"      element={<ProductsPage      key={authToken} />} />
+                <Route path="/sourcing"      element={<SourcingPage      key={authToken} />} />
+                <Route path="/sales"         element={<SalesPage         key={authToken} />} />
+                <Route path="/stock"         element={<StockPage         key={authToken} />} />
+                <Route path="/audit-reports" element={<AuditReportsPage  key={authToken} />} />
+                <Route path="/users"         element={<UsersPage         key={authToken} />} />
+                <Route path="/permissions"   element={<PermissionsPage   key={authToken} />} />
+                <Route path="*"              element={<Navigate to="/" replace />} />
               </Routes>
-
             </div>
           </div>
         )}

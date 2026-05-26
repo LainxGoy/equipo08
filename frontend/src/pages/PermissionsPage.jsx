@@ -46,7 +46,12 @@ export default function PermissionsPage() {
     }
   };
 
-  if (loading) return <div className="loading-state"><Loader2 className="spinner" /> Sincronizando políticas de seguridad...</div>;
+  if (loading) return (
+    <div className="flex items-center gap-2 text-slate-500 text-sm p-8">
+      <Loader2 className="animate-spin" size={20} />
+      Cargando permisos...
+    </div>
+  );
 
   const permissionGroups = [
     { 
@@ -116,35 +121,44 @@ export default function PermissionsPage() {
     if (!roleData) return null;
 
     return (
-      <div className="glass-container permission-card">
+      <div className="permission-card">
+        {/* Header */}
         <div className="permission-card-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Shield size={24} color="var(--accent-blue)" />
-            <h3 style={{ margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{roleName}</h3>
+          <div className="flex items-center gap-2">
+            <Shield size={18} strokeWidth={1.75} className="text-blue-600" />
+            <span className="font-bold text-sm text-slate-800 uppercase">{roleName}</span>
           </div>
-          <button className="btn-small" onClick={() => handleSave(roleName)} disabled={saving} style={{ backgroundColor: 'var(--accent-blue)' }}>
-            <Save size={16} /> Aplicar Perfil
+          <button
+            className="btn-sm"
+            onClick={() => handleSave(roleName)}
+            disabled={saving}
+          >
+            <Save size={14} />
+            Guardar
           </button>
         </div>
-        
+
+        {/* Permission Groups */}
         <div className="permission-groups">
-          {permissionGroups.map(group => {
+          {permissionGroups.map((group) => {
             const Icon = group.icon;
             return (
-              <div key={group.title} className="permission-group" style={{ marginBottom: '2rem' }}>
-                <h4 className="group-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-color)', fontSize: '0.9rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                  <Icon size={18} /> {group.title}
-                </h4>
-                {group.fields.map(field => (
-                  <div key={field.key} className="permission-row" style={{ padding: '0.85rem 0' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-secondary)' }}>{field.label}</span>
-                    <label className="switch">
-                      <input 
-                        type="checkbox" 
-                        checked={roleData[field.key] || false} 
-                        onChange={() => handleToggle(roleName, field.key)} 
+              <div key={group.title} className="permission-group">
+                <div className="group-title">
+                  <Icon size={12} />
+                  {group.title}
+                </div>
+                {group.fields.map((field) => (
+                  <div key={field.key} className="permission-row">
+                    <span>{field.label}</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={!!roleData[field.key]}
+                        onChange={() => handleToggle(roleName, field.key)}
                       />
-                      <span className="slider round"></span>
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
                 ))}
@@ -157,21 +171,22 @@ export default function PermissionsPage() {
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Políticas de Control de Acceso (ACL)</h1>
-          <p className="page-subtitle">Modula las directivas de seguridad para jerarquías administrativas y operacionales.</p>
-        </div>
+    <div className="space-y-5 animate-fadein">
+      {/* Page header */}
+      <div>
+        <h1 className="page-title">Políticas de Acceso (ACL)</h1>
+        <p className="page-subtitle">Configura los permisos para cada rol de tu equipo.</p>
       </div>
 
-      <div className="alert-info" style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', borderRadius: '12px', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', borderLeft: '4px solid var(--accent-blue)' }}>
-        <Info size={24} color="var(--accent-blue)" />
-        <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.4' }}>
-          <strong>Modo de Riesgo Corporativo:</strong> El perfil <strong>OWNER</strong> asume responsabilidades completas sobre el Root. Las directivas a continuación son exclusivas para el personal delegado. Cualquier modificación entra en rigor al renovar las firmas de los tokens.
+      {/* Info banner */}
+      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+        <Info size={16} className="text-blue-500 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+        <p className="text-sm text-blue-700 leading-relaxed m-0">
+          <strong>Nota:</strong> El perfil <strong>OWNER</strong> tiene acceso total. Los cambios a continuación aplican al personal delegado y entran en rigor al renovar su sesión.
         </p>
       </div>
 
+      {/* Two columns */}
       <div className="grid-2">
         {renderRoleColumn('SUPERVISOR')}
         {renderRoleColumn('VENDEDOR')}

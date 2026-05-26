@@ -18,7 +18,6 @@ export default function RegisterPage() {
 
     try {
       await api.post('/auth/register', { name, domain, email, password });
-      
       toast.success('Cuenta comercial creada con éxito. Ya puedes iniciar sesión.');
       navigate('/login');
     } catch (err) {
@@ -30,15 +29,22 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-container">
-      <div className="auth-card" style={{ maxWidth: '500px' }}>
+      <div className="auth-card max-w-lg">
+        <div className="flex justify-center mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center p-2">
+            <img src="/logo.png" alt="BolClick Logo" className="w-full h-full object-contain" />
+          </div>
+        </div>
+
         <h2 className="auth-title">Registra tu Tienda</h2>
         <p className="auth-subtitle">Crea un espacio de trabajo para tu tienda</p>
         
-        <form onSubmit={handleRegister}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label>Nombre Fiscal o Fantasía</label>
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-group">
+              <label htmlFor="reg-name">Nombre Comercial</label>
               <input 
+                id="reg-name"
                 type="text" 
                 value={name} 
                 onChange={e => setName(e.target.value)} 
@@ -48,9 +54,10 @@ export default function RegisterPage() {
                 title="El nombre no puede contener números ni símbolos"
               />
             </div>
-            <div>
-              <label>Identificador Único (Dominio)</label>
+            <div className="form-group">
+              <label htmlFor="reg-domain">Dominio Único</label>
               <input 
+                id="reg-domain"
                 type="text" 
                 value={domain} 
                 onChange={e => setDomain(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))} 
@@ -60,32 +67,41 @@ export default function RegisterPage() {
             </div>
           </div>
           
-          <label>Correo Electrónico (Admin)</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={e => setEmail(e.target.value)} 
-            required 
-            placeholder="admin@tiendaalpha.com"
-          />
+          <div className="form-group">
+            <label htmlFor="reg-email">Correo Electrónico (Admin)</label>
+            <input 
+              id="reg-email"
+              type="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              required 
+              placeholder="admin@tiendaalpha.com"
+            />
+          </div>
           
-          <label>Contraseña Maestra</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={e => setPassword(e.target.value)} 
-            required 
-            placeholder="••••••••"
-            minLength="6"
-          />
+          <div className="form-group">
+            <label htmlFor="reg-password">Contraseña Maestra</label>
+            <input 
+              id="reg-password"
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              required 
+              placeholder="••••••••"
+              minLength="6"
+            />
+          </div>
           
-          <button type="submit" disabled={loading} style={{ width: '100%', marginTop: '1.5rem', backgroundColor: 'var(--accent-blue)' }}>
+          <button type="submit" disabled={loading} className="w-full h-11 mt-2 text-sm font-semibold">
             {loading ? 'Creando tienda...' : 'Comenzar a usar BolClick'}
           </button>
         </form>
 
-        <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.9rem' }}>
-          ¿Ya tienes cuenta? <span className="auth-link" onClick={() => navigate('/login')}>Inicia sesión</span>
+        <div className="mt-8 text-center text-xs text-slate-500 font-medium">
+          ¿Ya tienes cuenta?{' '}
+          <span className="auth-link cursor-pointer hover:text-indigo-700 transition-colors" onClick={() => navigate('/login')}>
+            Inicia sesión
+          </span>
         </div>
       </div>
     </div>

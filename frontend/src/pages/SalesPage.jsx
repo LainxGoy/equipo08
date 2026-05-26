@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import { useToast } from '../components/ToastContext';
-import { ShoppingCart, User, MapPin, Printer, Plus, Trash2, Download, Receipt } from 'lucide-react';
+import { ShoppingCart, User, MapPin, Printer, Trash2, Download, Receipt, Search } from 'lucide-react';
 
 export default function SalesPage() {
   const [sucursales, setSucursales] = useState([]);
@@ -164,20 +164,21 @@ export default function SalesPage() {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
       {/* Left Column: POS / Terminal */}
-      <div className="glass-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '600px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-color)' }}>
-            <ShoppingCart size={24} /> Terminal de Ventas
+      <div className="lg:col-span-7 bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col gap-6 min-h-[640px]">
+        <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <ShoppingCart size={20} className="text-indigo-600" />
+            <span>Terminal de Ventas</span>
           </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <MapPin size={18} color="var(--accent-blue)" />
+          <div className="flex items-center gap-2">
+            <MapPin size={16} className="text-slate-400" />
             <select 
               value={selectedBranch} 
               onChange={e => { setSelectedBranch(e.target.value); setCart([]); }}
-              style={{ backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.4rem' }}
+              className="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
             >
               <option value="" disabled>Seleccione Sucursal...</option>
               {sucursales.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -185,36 +186,40 @@ export default function SalesPage() {
           </div>
         </div>
 
-        <div>
+        {/* Search Input */}
+        <div className="relative">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <Search size={18} />
+          </span>
           <input 
             type="text" 
-            placeholder="🔍 Buscar producto en inventario por nombre o SKU..." 
+            placeholder="Buscar producto por nombre o SKU..." 
             value={searchProduct}
             onChange={e => setSearchProduct(e.target.value)}
-            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white transition-colors placeholder:text-slate-400"
             disabled={!selectedBranch}
           />
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', backgroundColor: '#f8fafc' }}>
+        {/* Product Grid */}
+        <div className="flex-1 overflow-y-auto max-h-[420px] pr-1">
           {filteredStock.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-              {selectedBranch ? 'No hay productos en inventario' : 'Selecciona una sucursal primero'}
+            <div className="text-center py-16 text-slate-400 font-medium text-sm">
+              {selectedBranch ? 'No hay productos disponibles en esta sucursal' : 'Por favor, selecciona una sucursal para cargar el stock'}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {filteredStock.map(s => (
                 <div 
                   key={s.id} 
                   onClick={() => addToCart(s)}
-                  style={{ backgroundColor: '#fff', padding: '0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}
-                  className="hover-scale"
+                  className="bg-slate-50 hover:bg-slate-100/60 border border-slate-200/50 hover:border-indigo-100 rounded-xl p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col gap-1 hover:shadow-sm"
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>{s.producto?.sku}</div>
-                  <strong style={{ fontSize: '0.9rem', lineHeight: '1.2' }}>{s.producto?.name}</strong>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>Bs {Number(s.producto?.precioVenta || 0).toFixed(2)}</span>
-                    <span style={{ fontSize: '0.8rem', backgroundColor: '#e2e8f0', padding: '0.1rem 0.4rem', borderRadius: '10px' }}>{s.cantidadTotal} U.</span>
+                  <span className="font-mono text-[10px] text-slate-400 font-bold uppercase tracking-wider">{s.producto?.sku}</span>
+                  <strong className="text-sm text-slate-800 font-semibold leading-tight line-clamp-1">{s.producto?.name}</strong>
+                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-200/30">
+                    <span className="text-sm font-extrabold text-indigo-600">Bs {Number(s.producto?.precioVenta || 0).toFixed(2)}</span>
+                    <span className="text-[10px] bg-slate-200/80 text-slate-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">{s.cantidadTotal} Disp.</span>
                   </div>
                 </div>
               ))}
@@ -224,115 +229,129 @@ export default function SalesPage() {
       </div>
 
       {/* Right Column: Cart & Billing & History */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div className="lg:col-span-5 flex flex-col gap-6">
         
         {/* Cart Form */}
-        <div className="glass-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Receipt size={20} /> Detalle de Venta
-          </h4>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 pb-2 border-b border-slate-50">
+            <Receipt size={18} className="text-indigo-600" />
+            <span>Detalle de Facturación</span>
+          </h3>
 
           {/* Client Details */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', marginBottom: '0.2rem', color: 'var(--text-secondary)' }}><User size={14} /> Cliente / Razón Social</label>
-              <input type="text" value={clienteNombre} onChange={e => setClienteNombre(e.target.value)} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="form-group">
+              <label htmlFor="client-name" className="flex items-center gap-1.5"><User size={12} className="text-slate-400" /> Cliente / Razón Social</label>
+              <input 
+                id="client-name"
+                type="text" 
+                value={clienteNombre} 
+                onChange={e => setClienteNombre(e.target.value)} 
+                className="py-2 px-3 border border-slate-200 rounded-lg text-sm"
+              />
             </div>
-            <div>
-              <label style={{ fontSize: '0.85rem', marginBottom: '0.2rem', display: 'block', color: 'var(--text-secondary)' }}>NIT / CI (Opcional)</label>
-              <input type="text" value={clienteDocumento} onChange={e => setClienteDocumento(e.target.value)} placeholder="Ej. 1234567" style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+            <div className="form-group">
+              <label htmlFor="client-doc">NIT / CI (Opcional)</label>
+              <input 
+                id="client-doc"
+                type="text" 
+                value={clienteDocumento} 
+                onChange={e => setClienteDocumento(e.target.value)} 
+                placeholder="Ej. 1234567" 
+                className="py-2 px-3 border border-slate-200 rounded-lg text-sm"
+              />
             </div>
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px dashed #cbd5e1', margin: 0 }} />
+          <div className="h-px bg-dashed bg-slate-200" />
 
-          {/* Cart Items */}
-          <div style={{ minHeight: '150px', maxHeight: '250px', overflowY: 'auto' }}>
+          {/* Cart Items List */}
+          <div className="overflow-y-auto max-h-[220px] pr-1 min-h-[120px]">
             {cart.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>Agrega productos al carrito</div>
+              <div className="text-center py-10 text-slate-400 text-sm font-medium">
+                No hay productos en el carrito. Añade algunos del catálogo.
+              </div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid #e2e8f0', color: 'var(--text-secondary)' }}>
-                    <th style={{ textAlign: 'left', paddingBottom: '0.5rem' }}>Producto</th>
-                    <th style={{ textAlign: 'center', paddingBottom: '0.5rem' }}>Cant.</th>
-                    <th style={{ textAlign: 'right', paddingBottom: '0.5rem' }}>Subtotal</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cart.map(item => (
-                    <tr key={item.producto_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '0.5rem 0' }}>
-                        <div style={{ fontWeight: '500' }}>{item.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Bs {item.precioUnitario.toFixed(2)} c/u</div>
-                      </td>
-                      <td style={{ textAlign: 'center', padding: '0.5rem 0' }}>
-                        <input 
-                          type="number" 
-                          min="1" 
-                          max={item.maxStock} 
-                          value={item.cantidad} 
-                          onChange={e => updateCartQty(item.producto_id, parseInt(e.target.value) || 1)}
-                          style={{ width: '60px', textAlign: 'center', padding: '0.3rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                        />
-                      </td>
-                      <td style={{ textAlign: 'right', fontWeight: 'bold', padding: '0.5rem 0' }}>
+              <div className="space-y-3">
+                {cart.map(item => (
+                  <div key={item.producto_id} className="flex justify-between items-center py-2.5 px-3 bg-slate-50 border border-slate-200/50 rounded-xl gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-slate-800 truncate">{item.name}</div>
+                      <div className="text-[10px] text-slate-500 font-semibold mt-0.5">Bs {item.precioUnitario.toFixed(2)} c/u</div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max={item.maxStock} 
+                        value={item.cantidad} 
+                        onChange={e => updateCartQty(item.producto_id, parseInt(e.target.value) || 1)}
+                        className="w-12 text-center py-1 bg-white border border-slate-200 rounded-md text-xs font-bold focus:outline-none"
+                      />
+                      <span className="text-xs font-bold text-slate-700 w-16 text-right">
                         Bs {(item.cantidad * item.precioUnitario).toFixed(2)}
-                      </td>
-                      <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>
-                        <button onClick={() => removeFromCart(item.producto_id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}>
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </span>
+                      <button 
+                        onClick={() => removeFromCart(item.producto_id)} 
+                        className="text-slate-400 hover:text-rose-500 p-1 rounded-lg transition-colors hover:bg-rose-50"
+                        title="Eliminar ítem"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-            <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)' }}>Total:</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>Bs {cartTotal.toFixed(2)}</span>
+          {/* Total Section */}
+          <div className="flex justify-between items-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+            <span className="text-sm font-bold text-slate-500">Monto Total:</span>
+            <span className="text-xl font-extrabold text-slate-900">Bs {cartTotal.toFixed(2)}</span>
           </div>
 
           <button 
             onClick={handleRegisterSale} 
             disabled={saving || cart.length === 0}
-            style={{ width: '100%', padding: '1rem', backgroundColor: 'var(--primary-color)', color: 'white', borderRadius: '8px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold', cursor: cart.length > 0 ? 'pointer' : 'not-allowed', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', opacity: cart.length > 0 ? 1 : 0.6 }}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm shadow-indigo-600/10 transition-all duration-150 active:scale-[0.98]"
           >
-            <Printer size={20} /> {saving ? 'Procesando...' : 'Cobrar y Emitir Comprobante'}
+            <Printer size={16} /> 
+            <span>{saving ? 'Registrando venta...' : 'Cobrar y Emitir Comprobante'}</span>
           </button>
         </div>
 
         {/* History List */}
-        <div className="glass-container" style={{ flex: 1 }}>
-          <h4 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
-             Historial Reciente
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+             Historial de Comprobantes Recientes
           </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
-            {salesHistory.length === 0 ? <p style={{ fontSize: '0.9rem', color: '#64748b' }}>No hay ventas registradas.</p> : 
-             salesHistory.map(sale => (
-               <div key={sale.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#fff' }}>
-                 <div>
-                   <div style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>{sale.numeroComprobante}</div>
-                   <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{new Date(sale.fecha).toLocaleString()} | {sale.clienteNombre}</div>
-                 </div>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                   <span style={{ fontWeight: 'bold' }}>Bs {Number(sale.total).toFixed(2)}</span>
-                   <button 
-                     onClick={() => downloadPdf(sale.id, sale.numeroComprobante)}
-                     disabled={downloading === sale.id}
-                     title="Descargar PDF"
-                     style={{ background: '#f1f5f9', border: 'none', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer', color: '#334155' }}
-                   >
-                     <Download size={16} />
-                   </button>
-                 </div>
-               </div>
-             ))
-            }
+          <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+            {salesHistory.length === 0 ? (
+              <p className="text-xs text-slate-400 font-medium py-4 text-center">No hay registros de ventas anteriores.</p>
+            ) : (
+              salesHistory.map(sale => (
+                <div key={sale.id} className="flex justify-between items-center p-3 border border-slate-100 rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                  <div>
+                    <div className="text-xs font-bold text-slate-800">{sale.numeroComprobante}</div>
+                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                      {new Date(sale.fecha).toLocaleDateString()} | {sale.clienteNombre}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-700">Bs {Number(sale.total).toFixed(2)}</span>
+                    <button 
+                      onClick={() => downloadPdf(sale.id, sale.numeroComprobante)}
+                      disabled={downloading === sale.id}
+                      title="Descargar PDF"
+                      className="p-1.5 bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 rounded-lg hover:border-slate-300 transition-all"
+                    >
+                      <Download size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

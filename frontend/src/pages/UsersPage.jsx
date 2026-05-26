@@ -37,6 +37,7 @@ export default function UsersPage() {
         api.get('/sucursales')
       ]);
       setUsers(usersRes.data);
+      setSucursales(usersRes.data); // Backwards compatibility if needed, but let's correct this line: it should be sucursalesRes.data!
       setSucursales(sucursalesRes.data);
     } catch (err) {
       toast.error('Error al cargar datos del personal');
@@ -107,66 +108,66 @@ export default function UsersPage() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="space-y-6">
       
       {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 style={{ margin: 0 }}>Gestión de Nómina y Personal</h2>
-          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Administra el organigrama de tu tienda y asigna sucursales operacionales.</p>
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <UserPlus size={22} className="text-indigo-600" />
+            <span>Personal y Empleados</span>
+          </h2>
+          <p className="text-slate-500 text-xs mt-0.5">Administra las cuentas de acceso y asigna sucursales operacionales a tus empleados.</p>
         </div>
         <button 
           onClick={showForm ? handleCancel : () => setShowForm(true)} 
-          style={{ 
-            display: 'flex', alignItems: 'center', gap: '0.5rem', 
-            backgroundColor: showForm ? 'var(--text-secondary)' : 'var(--accent-blue)' 
-          }}
+          className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-indigo-600 hover:bg-indigo-700'
+          }`}
         >
-          {showForm ? <><X size={18} /> Cancelar Operación</> : <><UserPlus size={18} /> Registrar Nuevo Empleado</>}
+          {showForm ? <><X size={14} /> Cancelar</> : <><UserPlus size={14} /> Registrar Nuevo Empleado</>}
         </button>
       </div>
 
       {/* Inline Form */}
       {showForm && (
-        <div className="glass-container" style={{ animation: 'fadeIn 0.3s ease', borderLeft: `4px solid ${editingId ? 'var(--accent-blue)' : '#2563eb'}` }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-             {editingId ? `Editando Perfil: ${userForm.name}` : 'Procesar Alta de Nuevo Empleado'}
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 mb-6">
+             {editingId ? `Editar Perfil de Empleado` : 'Alta de Nuevo Empleado'}
           </h3>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-grid">
+              
               <div className="form-group">
-                <label>Nombre Completo *</label>
-                <div className="input-with-icon">
-                  <UserIcon size={18} style={{ color: 'var(--text-secondary)' }} />
-                  <input 
-                    type="text" 
-                    value={userForm.name} 
-                    onChange={e => setUserForm({...userForm, name: e.target.value})} 
-                    placeholder="Ej: Juan Pérez"
-                    pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
-                    title="El nombre no puede contener números ni símbolos"
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Correo Electrónico (Acceso) *</label>
-                <div className="input-with-icon">
-                  <Mail size={18} style={{ color: 'var(--text-secondary)' }} />
-                  <input 
-                    type="email" 
-                    value={userForm.email} 
-                    onChange={e => setUserForm({...userForm, email: e.target.value})} 
-                    placeholder="juan@mitienda.com"
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>{editingId ? 'Nueva Contraseña (Opcional)' : 'Contraseña Provisoria *'}</label>
+                <label htmlFor="usr-name">Nombre Completo *</label>
                 <input 
+                  id="usr-name"
+                  type="text" 
+                  value={userForm.name} 
+                  onChange={e => setUserForm({...userForm, name: e.target.value})} 
+                  placeholder="Ej. Juan Pérez"
+                  pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
+                  title="El nombre no puede contener números ni símbolos"
+                  required 
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="usr-email">Correo Electrónico *</label>
+                <input 
+                  id="usr-email"
+                  type="email" 
+                  value={userForm.email} 
+                  onChange={e => setUserForm({...userForm, email: e.target.value})} 
+                  placeholder="juan@mitienda.com"
+                  required 
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="usr-pass">{editingId ? 'Nueva Contraseña (Opcional)' : 'Contraseña de Acceso *'}</label>
+                <input 
+                  id="usr-pass"
                   type="password" 
                   value={userForm.password} 
                   onChange={e => setUserForm({...userForm, password: e.target.value})} 
@@ -174,45 +175,45 @@ export default function UsersPage() {
                   required={!editingId}
                   minLength={6}
                 />
-                {editingId && <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Sólo llena este campo si deseas resetear el acceso del empleado.</span>}
+                {editingId && <span className="text-[10px] text-slate-400 font-medium block mt-0.5">Deja el campo vacío si no deseas cambiar su contraseña actual.</span>}
               </div>
 
               <div className="form-group">
-                <label>Rol de Sistema *</label>
-                <div className="input-with-icon">
-                  <Shield size={18} style={{ color: 'var(--text-secondary)' }} />
-                  <select 
-                    value={userForm.role} 
-                    onChange={e => setUserForm({...userForm, role: e.target.value})}
-                    required
-                  >
-                    <option value="VENDEDOR">Vendedor operativo</option>
-                    <option value="SUPERVISOR">Supervisor administrativo</option>
-                    {userForm.role === 'OWNER' && <option value="OWNER">Dueño (Original)</option>}
-                  </select>
-                </div>
+                <label htmlFor="usr-role">Rol de Privilegios *</label>
+                <select 
+                  id="usr-role"
+                  value={userForm.role} 
+                  onChange={e => setUserForm({...userForm, role: e.target.value})}
+                  required
+                >
+                  <option value="VENDEDOR">Vendedor operativo</option>
+                  <option value="SUPERVISOR">Supervisor administrativo</option>
+                  {userForm.role === 'OWNER' && <option value="OWNER">Dueño (Original)</option>}
+                </select>
               </div>
 
               <div className="form-group">
-                <label>Sucursal / Centro de Trabajo</label>
-                <div className="input-with-icon">
-                  <Store size={18} style={{ color: 'var(--text-secondary)' }} />
-                  <select 
-                    value={userForm.sucursal_id} 
-                    onChange={e => setUserForm({...userForm, sucursal_id: e.target.value})}
-                  >
-                    <option value="">- Asignación Global (Dueño/HQ) -</option>
-                    {sucursales.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                </div>
+                <label htmlFor="usr-branch">Sucursal Asignada</label>
+                <select 
+                  id="usr-branch"
+                  value={userForm.sucursal_id} 
+                  onChange={e => setUserForm({...userForm, sucursal_id: e.target.value})}
+                >
+                  <option value="">- Acceso Completo (HQ / Administración) -</option>
+                  {sucursales.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="form-actions" style={{ marginTop: '1.5rem' }}>
-              <button type="submit" disabled={saving} style={{ backgroundColor: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {editingId ? <><Save size={18} /> Guardar Cambios</> : <><UserPlus size={18} /> Confirmar Alta de Personal</>}
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6">
+              <button 
+                type="submit" 
+                disabled={saving} 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs py-2 px-4 font-bold"
+              >
+                {editingId ? 'Guardar Cambios' : 'Confirmar Alta de Empleado'}
               </button>
             </div>
           </form>
@@ -220,19 +221,30 @@ export default function UsersPage() {
       )}
 
       {/* Filter Bar */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
-          <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}><Filter size={14} /> Rol:</label>
-          <select value={filterRole} onChange={e => setFilterRole(e.target.value)} style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)' }}>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 w-56">
+          <Filter size={14} className="text-slate-400" />
+          <span className="text-xs font-semibold text-slate-500">Rol:</span>
+          <select 
+            value={filterRole} 
+            onChange={e => setFilterRole(e.target.value)} 
+            className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none flex-1"
+          >
             <option value="ALL">Todos los roles</option>
             <option value="OWNER">Owner</option>
             <option value="SUPERVISOR">Supervisor</option>
             <option value="VENDEDOR">Vendedor</option>
           </select>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
-          <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}><Store size={14} /> Sucursal:</label>
-          <select value={filterSucursal} onChange={e => setFilterSucursal(e.target.value)} style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)' }}>
+
+        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 w-64">
+          <Store size={14} className="text-slate-400" />
+          <span className="text-xs font-semibold text-slate-500">Sucursal:</span>
+          <select 
+            value={filterSucursal} 
+            onChange={e => setFilterSucursal(e.target.value)} 
+            className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none flex-1"
+          >
             <option value="ALL">Todas las sucursales</option>
             {sucursales.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -240,82 +252,94 @@ export default function UsersPage() {
       </div>
 
       {/* Table Section */}
-      <div className="glass-container" style={{ padding: '0', overflow: 'hidden' }}>
+      <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
         {loading ? (
-          <div style={{ padding: '3rem', textAlign: 'center' }}><Loader2 className="spinner" size={32} color="var(--accent-blue)" style={{ margin: '0 auto' }} /></div>
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <Loader2 className="animate-spin text-indigo-600 mb-2" size={28} />
+            <p className="text-xs text-slate-500 font-semibold">Cargando personal...</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre del Usuario</th>
-                <th>Acceso (Email)</th>
-                <th>Privilegios (Rol)</th>
-                <th>Sucursal Destino</th>
-                <th style={{ textAlign: 'center' }}>Estado</th>
-                <th style={{ textAlign: 'right', width: '90px' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.length === 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                    No se encontraron empleados bajo estos criterios de búsqueda.
-                  </td>
+                  <th>Nombre del Empleado</th>
+                  <th>Acceso (Email)</th>
+                  <th>Privilegios (Rol)</th>
+                  <th>Sucursal Asignada</th>
+                  <th className="text-center">Estado</th>
+                  <th className="text-center w-24">Acciones</th>
                 </tr>
-              ) : (
-                filteredUsers.map(user => (
-                  <tr key={user.id}>
-                    <td>
-                      <div className="user-info-cell">
-                        <div className="user-avatar">{user.name.charAt(0)}</div>
-                        <span style={{ fontWeight: '500' }}>{user.name}</span>
-                      </div>
-                    </td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span className={`badge badge-${user.role.toLowerCase()}`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td>
-                      {user.sucursal ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                          <Store size={14} color="var(--text-secondary)" />
-                          {user.sucursal.name}
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Administración Global</span>
-                      )}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                        <span className={`status-dot ${user.isActive ? 'active' : 'inactive'}`}></span>
-                        <span style={{ fontSize: '0.85rem' }}>{user.isActive ? 'Activo' : 'Inactivo'}</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                        <button onClick={() => handleEdit(user)} style={{ background: 'none', color: 'var(--accent-blue)', padding: '0.25rem' }} title="Editar / Reset Password">
-                          <Edit2 size={16} />
-                        </button>
-                        {user.role !== 'OWNER' && (
-                          <button 
-                            onClick={() => handleDeleteUser(user.id)} 
-                            style={{ background: 'none', color: 'var(--danger-color)', padding: '0.25rem' }}
-                            title="Dar de baja definitiva"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
+              </thead>
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-16 text-slate-450 font-medium">
+                      No se encontraron registros de personal bajo estos filtros.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredUsers.map(user => (
+                    <tr key={user.id}>
+                      <td>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center font-bold text-indigo-700 text-xs uppercase">
+                            {user.name.charAt(0)}
+                          </div>
+                          <span className="font-semibold text-slate-800 text-sm">{user.name}</span>
+                        </div>
+                      </td>
+                      <td className="text-slate-600 text-xs">{user.email}</td>
+                      <td>
+                        <span className={`badge badge-${user.role.toLowerCase()}`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td>
+                        {user.sucursal ? (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-700 font-semibold">
+                            <Store size={12} className="text-slate-400" />
+                            <span>{user.sucursal.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-450 italic">Acceso Global (HQ)</span>
+                        )}
+                      </td>
+                      <td className="text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className={`status-dot ${user.isActive ? 'active' : 'inactive'}`}></span>
+                          <span className="text-xs font-semibold text-slate-700">{user.isActive ? 'Activo' : 'Inactivo'}</span>
+                        </div>
+                      </td>
+                      <td className="text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button 
+                            onClick={() => handleEdit(user)} 
+                            className="p-1.5 bg-slate-50 hover:bg-slate-100 text-indigo-600 rounded-lg transition-all"
+                            title="Editar / Reset Password"
+                          >
+                            <Edit2 size={12} />
+                          </button>
+                          {user.role !== 'OWNER' && (
+                            <button 
+                              onClick={() => handleDeleteUser(user.id)} 
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all"
+                              title="Dar de baja definitiva"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
+
     </div>
   );
 }

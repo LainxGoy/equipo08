@@ -26,6 +26,11 @@ export class CreateSucursalDto {
   phone?: string;
 
   @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  horarios?: string;
+
+  @ApiProperty({ required: false })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
