@@ -32,7 +32,12 @@ export default function LoginPage({ setAuthToken }) {
       toast.success(`Bienvenido, ${user.name} (${user.tenant_name})`);
       navigate('/');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error al iniciar sesión');
+      const msg = err.response?.data?.message;
+      if (msg === 'PENDING_APPROVAL') {
+        toast.error('Tu tienda está en proceso de revisión. Te notificaremos cuando sea aprobada.', { duration: 5000 });
+      } else {
+        toast.error(msg || 'Error al iniciar sesión');
+      }
     } finally {
       setLoading(false);
     }

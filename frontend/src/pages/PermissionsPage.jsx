@@ -171,11 +171,13 @@ export default function PermissionsPage() {
   };
 
   return (
-    <div className="space-y-5 animate-fadein">
+    <div className="full-width-container animate-fadein space-y-5">
       {/* Page header */}
-      <div>
-        <h1 className="page-title">Políticas de Acceso (ACL)</h1>
-        <p className="page-subtitle">Configura los permisos para cada rol de tu equipo.</p>
+      <div className="page-header-bar">
+        <div>
+          <h1>Políticas de Acceso (ACL)</h1>
+          <p>Configura los permisos para cada rol de tu equipo.</p>
+        </div>
       </div>
 
       {/* Info banner */}

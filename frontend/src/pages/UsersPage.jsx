@@ -23,6 +23,7 @@ export default function UsersPage() {
   // Filters State
   const [filterRole, setFilterRole] = useState('ALL');
   const [filterSucursal, setFilterSucursal] = useState('ALL');
+  const [showFilters, setShowFilters] = useState(false);
   
   const toast = useToast();
 
@@ -108,33 +109,51 @@ export default function UsersPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="full-width-container animate-fadein space-y-6">
       
       {/* Header Section */}
-      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header-bar">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <UserPlus size={22} className="text-indigo-600" />
-            <span>Personal y Empleados</span>
-          </h2>
-          <p className="text-slate-500 text-xs mt-0.5">Administra las cuentas de acceso y asigna sucursales operacionales a tus empleados.</p>
+          <h1>Personal y Empleados</h1>
+          <p>Administra las cuentas de acceso y asigna sucursales operacionales a tus empleados.</p>
         </div>
-        <button 
-          onClick={showForm ? handleCancel : () => setShowForm(true)} 
-          className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-            showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-indigo-600 hover:bg-indigo-700'
-          }`}
-        >
-          {showForm ? <><X size={14} /> Cancelar</> : <><UserPlus size={14} /> Registrar Nuevo Empleado</>}
-        </button>
+        <div className="flex gap-2">
+          <button
+            className={`py-2 px-5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm ${
+              showFilters ? 'bg-indigo-500 text-white shadow-indigo-500/20' : 'bg-white/20 hover:bg-white/30 text-white'
+            }`}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={18} />
+            {showFilters ? 'Ocultar Filtros' : 'Buscar / Filtrar'}
+          </button>
+          <button 
+            onClick={showForm ? handleCancel : () => setShowForm(true)} 
+            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm ${
+              showForm ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white text-[#184e77] hover:bg-slate-50'
+            }`}
+          >
+            {showForm ? <><X size={14} /> Cancelar</> : <><UserPlus size={14} /> Registrar Nuevo Empleado</>}
+          </button>
+        </div>
       </div>
 
       {/* Inline Form */}
       {showForm && (
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 mb-6">
-             {editingId ? `Editar Perfil de Empleado` : 'Alta de Nuevo Empleado'}
-          </h3>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn relative">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-6">
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider m-0">
+               {editingId ? `Editar Perfil de Empleado` : 'Alta de Nuevo Empleado'}
+            </h3>
+            <button 
+              type="button" 
+              onClick={handleCancel} 
+              className="text-slate-400 hover:text-slate-655 hover:bg-slate-50 p-1.5 rounded-lg transition-colors"
+              title="Cerrar Formulario"
+            >
+              <X size={16} />
+            </button>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-grid">
               
@@ -207,11 +226,17 @@ export default function UsersPage() {
               </div>
             </div>
 
-            <div className="form-actions pt-4 border-t border-slate-100 mt-6">
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6 flex justify-end gap-3">
+              <button 
+                type="button" 
+                onClick={handleCancel} 
+                className="btn-premium"
+              >
+                Cancelar
+              </button>
               <button 
                 type="submit" 
-                disabled={saving} 
-                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs py-2 px-4 font-bold"
+                className="btn-premium btn-premium-indigo"
               >
                 {editingId ? 'Guardar Cambios' : 'Confirmar Alta de Empleado'}
               </button>
@@ -220,39 +245,46 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 w-56">
-          <Filter size={14} className="text-slate-400" />
-          <span className="text-xs font-semibold text-slate-500">Rol:</span>
-          <select 
-            value={filterRole} 
-            onChange={e => setFilterRole(e.target.value)} 
-            className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none flex-1"
-          >
-            <option value="ALL">Todos los roles</option>
-            <option value="OWNER">Owner</option>
-            <option value="SUPERVISOR">Supervisor</option>
-            <option value="VENDEDOR">Vendedor</option>
-          </select>
+      {/* Filter Drawer */}
+      {showFilters && (
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-end md:items-center gap-4 animate-fadeIn">
+          <div className="flex-1 w-full">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filtrar por Rol</label>
+            <select 
+              value={filterRole} 
+              onChange={e => setFilterRole(e.target.value)} 
+              className="w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+            >
+              <option value="ALL">-- Todos los roles --</option>
+              <option value="OWNER">Owner</option>
+              <option value="SUPERVISOR">Supervisor</option>
+              <option value="VENDEDOR">Vendedor</option>
+            </select>
+          </div>
+          <div className="flex-1 w-full">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filtrar por Sucursal</label>
+            <select 
+              value={filterSucursal} 
+              onChange={e => setFilterSucursal(e.target.value)} 
+              className="w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+            >
+              <option value="ALL">-- Todas las sucursales --</option>
+              {sucursales.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div className="w-full md:w-auto flex justify-end">
+            <button
+              onClick={() => { setFilterRole('ALL'); setFilterSucursal('ALL'); }}
+              className="text-slate-400 hover:text-rose-600 text-xs font-bold uppercase tracking-wider mt-2 md:mt-0 transition-colors"
+            >
+              Limpiar Filtros
+            </button>
+          </div>
         </div>
-
-        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 w-64">
-          <Store size={14} className="text-slate-400" />
-          <span className="text-xs font-semibold text-slate-500">Sucursal:</span>
-          <select 
-            value={filterSucursal} 
-            onChange={e => setFilterSucursal(e.target.value)} 
-            className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none flex-1"
-          >
-            <option value="ALL">Todas las sucursales</option>
-            {sucursales.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-      </div>
+      )}
 
       {/* Table Section */}
-      <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+      <div className="table-premium-wrapper">
         {loading ? (
           <div className="py-20 text-center flex flex-col items-center justify-center">
             <Loader2 className="animate-spin text-indigo-600 mb-2" size={28} />
@@ -260,21 +292,21 @@ export default function UsersPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="table-premium">
               <thead>
                 <tr>
-                  <th>Nombre del Empleado</th>
-                  <th>Acceso (Email)</th>
-                  <th>Privilegios (Rol)</th>
-                  <th>Sucursal Asignada</th>
-                  <th className="text-center">Estado</th>
-                  <th className="text-center w-24">Acciones</th>
+                  <th style={{ width: '25%' }}>Nombre del Empleado</th>
+                  <th style={{ width: '25%' }}>Acceso (Email)</th>
+                  <th style={{ width: '15%' }}>Privilegios (Rol)</th>
+                  <th style={{ width: '20%' }}>Sucursal Asignada</th>
+                  <th className="text-center" style={{ width: '10%' }}>Estado</th>
+                  <th className="text-center" style={{ width: '10%' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-16 text-slate-450 font-medium">
+                    <td colSpan="6" className="text-center py-16 text-slate-400 font-medium">
                       No se encontraron registros de personal bajo estos filtros.
                     </td>
                   </tr>
@@ -289,7 +321,7 @@ export default function UsersPage() {
                           <span className="font-semibold text-slate-800 text-sm">{user.name}</span>
                         </div>
                       </td>
-                      <td className="text-slate-600 text-xs">{user.email}</td>
+                      <td className="text-slate-650 text-xs">{user.email}</td>
                       <td>
                         <span className={`badge badge-${user.role.toLowerCase()}`}>
                           {user.role}
@@ -302,7 +334,7 @@ export default function UsersPage() {
                             <span>{user.sucursal.name}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-450 italic">Acceso Global (HQ)</span>
+                          <span className="text-xs text-slate-455 italic font-medium">Acceso Global (HQ)</span>
                         )}
                       </td>
                       <td className="text-center">
@@ -315,7 +347,7 @@ export default function UsersPage() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button 
                             onClick={() => handleEdit(user)} 
-                            className="p-1.5 bg-slate-50 hover:bg-slate-100 text-indigo-600 rounded-lg transition-all"
+                            className="btn-premium-icon"
                             title="Editar / Reset Password"
                           >
                             <Edit2 size={12} />
@@ -323,7 +355,7 @@ export default function UsersPage() {
                           {user.role !== 'OWNER' && (
                             <button 
                               onClick={() => handleDeleteUser(user.id)} 
-                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all"
+                              className="btn-premium-icon btn-premium-icon-danger"
                               title="Dar de baja definitiva"
                             >
                               <Trash2 size={12} />

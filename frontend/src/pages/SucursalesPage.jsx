@@ -120,22 +120,17 @@ export default function SucursalesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      
-      {/* Header and Actions */}
-      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="full-width-container animate-fadein space-y-6">
+      <div className="page-header-bar">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-             <Store size={22} className="text-indigo-600" />
-             <span>Gestión de Sucursales</span>
-          </h2>
-          <p className="text-slate-500 text-xs mt-0.5">Administra los puntos de venta y almacenes físicos de tu Pyme.</p>
+          <h1>Gestión de Sucursales</h1>
+          <p>Administra los puntos de venta y almacenes físicos de tu Pyme.</p>
         </div>
         {hasPermission('sucursales_crear') && (
           <button 
             onClick={showForm ? resetForm : () => setShowForm(true)} 
-            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-indigo-600 hover:bg-indigo-700'
+            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm ${
+              showForm ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white text-[#184e77] hover:bg-slate-50'
             }`}
           >
             {showForm ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Aperturar Sucursal</>}
@@ -144,10 +139,20 @@ export default function SucursalesPage() {
       </div>
 
       {showForm && (
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 mb-6">
-            {editingId ? 'Configurar Sucursal' : 'Alta de Nueva Sucursal'}
-          </h3>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn relative">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-6">
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider m-0">
+              {editingId ? 'Configurar Sucursal' : 'Alta de Nueva Sucursal'}
+            </h3>
+            <button 
+              type="button" 
+              onClick={resetForm} 
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors hover:bg-slate-50"
+              title="Cerrar Formulario"
+            >
+              <X size={16} />
+            </button>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-grid">
               <div className="form-group">
@@ -193,7 +198,7 @@ export default function SucursalesPage() {
                 <label>Horarios de Atención</label>
                 <div className="flex flex-col gap-4 mt-1">
                   {horariosData.map((h, i) => (
-                    <div key={i} className="flex flex-col gap-3 p-4 bg-slate-50 border border-slate-200/80 rounded-xl relative">
+                    <div key={i} className="flex flex-col gap-3 p-4 bg-slate-50/50 border border-slate-200/80 rounded-xl relative">
                       <div>
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Días Aplicables:</span>
                         <div className="flex flex-wrap gap-1.5">
@@ -267,8 +272,18 @@ export default function SucursalesPage() {
                 </select>
               </div>
             </div>
-            <div className="form-actions pt-4 border-t border-slate-100 mt-6">
-              <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs py-2 px-4 font-bold">
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6 flex justify-end gap-3">
+              <button 
+                type="button" 
+                onClick={resetForm} 
+                className="btn-premium"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="btn-premium btn-premium-indigo"
+              >
                 {editingId ? 'Guardar Cambios' : 'Aperturar Sucursal'}
               </button>
             </div>
@@ -277,7 +292,7 @@ export default function SucursalesPage() {
       )}
 
       {/* Table Section */}
-      <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+      <div className="table-premium-wrapper">
         {loading ? (
           <div className="py-20 text-center flex flex-col items-center justify-center">
             <Loader2 className="animate-spin text-indigo-600 mb-2" size={28} />
@@ -285,14 +300,14 @@ export default function SucursalesPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="table-premium">
               <thead>
                 <tr>
-                  <th>Sucursal / Almacén</th>
-                  <th>Dirección</th>
-                  <th>Contacto / Horarios</th>
-                  <th className="text-center w-28">Estado</th>
-                  {hasPermission('sucursales_editar') && <th className="text-center w-24">Acciones</th>}
+                  <th style={{ width: '25%' }}>Sucursal / Almacén</th>
+                  <th style={{ width: '30%' }}>Dirección</th>
+                  <th style={{ width: '25%' }}>Contacto / Horarios</th>
+                  <th className="text-center" style={{ width: '10%' }}>Estado</th>
+                  {hasPermission('sucursales_editar') && <th className="text-center" style={{ width: '10%' }}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
@@ -309,10 +324,10 @@ export default function SucursalesPage() {
                   sucursales.map(s => (
                     <tr key={s.id}>
                       <td>
-                        <div className="flex items-center gap-2 font-bold text-slate-800">
-                          <Store size={14} className="text-slate-400" />
-                          <span>{tenantName} ({s.name})</span>
+                        <div className="font-bold text-slate-800 text-sm">
+                          {s.name}
                         </div>
+                        <div className="text-[10px] text-slate-455 font-bold uppercase tracking-wider mt-0.5">{tenantName}</div>
                       </td>
                       <td className="text-slate-500 text-xs">{s.address || '---'}</td>
                       <td>
@@ -325,17 +340,17 @@ export default function SucursalesPage() {
                           {s.horarios && (
                             <div className="flex flex-col gap-1">
                               {(() => {
-                                try {
-                                  const parsed = JSON.parse(s.horarios);
-                                  return parsed.map((h, i) => (
-                                    <span key={i} className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100/50 px-2 py-0.5 rounded-md flex items-center gap-1 w-fit">
-                                      <Clock size={10} />
-                                      <span>{h.days.length === 7 ? 'Todos los días' : h.days.map(d=>d.slice(0,3)).join(', ')}: {h.start} - {h.end}</span>
-                                    </span>
-                                  ));
-                                } catch(e) {
-                                  return <span className="text-[10px] text-slate-400">🕒 {s.horarios}</span>;
-                                }
+                                  try {
+                                    const parsed = JSON.parse(s.horarios);
+                                    return parsed.map((h, i) => (
+                                      <span key={i} className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100/50 px-2 py-0.5 rounded-md flex items-center gap-1 w-fit">
+                                        <Clock size={10} />
+                                        <span>{h.days.length === 7 ? 'Todos los días' : h.days.map(d=>d.slice(0,3)).join(', ')}: {h.start} - {h.end}</span>
+                                      </span>
+                                    ));
+                                  } catch(e) {
+                                    return <span className="text-[10px] text-slate-400">🕒 {s.horarios}</span>;
+                                  }
                               })()}
                             </div>
                           )}
@@ -351,7 +366,7 @@ export default function SucursalesPage() {
                           <div className="flex items-center justify-center gap-1.5">
                             <button 
                               onClick={() => handleEdit(s)} 
-                              className="p-1.5 bg-slate-50 hover:bg-slate-100 text-indigo-600 rounded-lg transition-all"
+                              className="btn-premium-icon"
                               title="Editar"
                             >
                               <Edit2 size={12} />
@@ -359,7 +374,7 @@ export default function SucursalesPage() {
                             {hasPermission('sucursales_eliminar') && (
                               <button 
                                 onClick={() => handleDelete(s.id)} 
-                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all"
+                                className="btn-premium-icon btn-premium-icon-danger"
                                 title="Cerrar / Eliminar"
                               >
                                 <Trash2 size={12} />

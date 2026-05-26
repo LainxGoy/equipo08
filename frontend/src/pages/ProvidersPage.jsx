@@ -105,24 +105,19 @@ export default function ProvidersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="full-width-container animate-fadein space-y-6">
       
       {/* Header and Actions */}
-      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="page-header-bar">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Building2 size={22} className="text-indigo-600" />
-            <span>Directorio de Proveedores</span>
-          </h2>
-          <p className="text-slate-500 text-xs mt-0.5">
-            Añade proveedores registrados en el sistema central vinculándolos mediante su NIT.
-          </p>
+          <h1>Directorio de Proveedores</h1>
+          <p>Añade proveedores registrados en el sistema central vinculándolos mediante su NIT.</p>
         </div>
         {hasPermission('proveedores_crear') && (
           <button 
             onClick={showForm ? resetForm : () => setShowForm(true)} 
-            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-indigo-600 hover:bg-indigo-700'
+            className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm ${
+              showForm ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white text-[#184e77] hover:bg-slate-50'
             }`}
           >
             {showForm ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Nuevo Proveedor</>}
@@ -131,10 +126,20 @@ export default function ProvidersPage() {
       </div>
 
       {showForm && (
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 mb-6">
-            Importar Proveedor Maestro
-          </h3>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn relative">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-6">
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider m-0">
+              Importar Proveedor Maestro
+            </h3>
+            <button 
+              type="button" 
+              onClick={resetForm} 
+              className="text-slate-400 hover:text-slate-650 hover:bg-slate-50 p-1.5 rounded-lg transition-colors"
+              title="Cerrar Formulario"
+            >
+              <X size={16} />
+            </button>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-grid">
               
@@ -195,11 +200,18 @@ export default function ProvidersPage() {
 
             </div>
             
-            <div className="form-actions pt-4 border-t border-slate-100 mt-6">
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6 flex justify-end gap-3">
+              <button 
+                type="button" 
+                onClick={resetForm} 
+                className="btn-premium"
+              >
+                Cancelar
+              </button>
               <button 
                 type="submit" 
                 disabled={!isFound} 
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-lg text-xs py-2 px-4 font-bold"
+                className="btn-premium btn-premium-indigo"
               >
                 Anexar Proveedor a la Tienda
               </button>
@@ -209,7 +221,7 @@ export default function ProvidersPage() {
       )}
 
       {/* Directory Table */}
-      <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+      <div className="table-premium-wrapper">
         {loading ? (
           <div className="py-20 text-center flex flex-col items-center justify-center">
             <Loader2 className="animate-spin text-indigo-600 mb-2" size={28} />
@@ -217,19 +229,19 @@ export default function ProvidersPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="table-premium">
               <thead>
                 <tr>
-                  <th>Razón Social Local</th>
-                  <th>NIT / RUT</th>
-                  <th>Correo de Contacto</th>
-                  {hasPermission('proveedores_eliminar') && <th className="text-center w-24">Acciones</th>}
+                  <th style={{ width: '40%' }}>Razón Social Local</th>
+                  <th style={{ width: '25%' }}>NIT / RUT</th>
+                  <th style={{ width: '25%' }}>Correo de Contacto</th>
+                  {hasPermission('proveedores_eliminar') && <th className="text-center" style={{ width: '10%' }}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
                 {providers.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-16 text-slate-450 font-medium">
+                    <td colSpan="4" className="text-center py-16 text-slate-400 font-medium">
                       No hay proveedores registrados en tu Empresa. Importa uno usando su NIT.
                     </td>
                   </tr>
@@ -243,7 +255,7 @@ export default function ProvidersPage() {
                         <td className="text-center">
                           <button 
                             onClick={() => handleDelete(p.id)} 
-                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all"
+                            className="btn-premium-icon btn-premium-icon-danger"
                             title="Quitar proveedor"
                           >
                             <Trash2 size={12} />

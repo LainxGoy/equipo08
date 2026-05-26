@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { ShoppingCart, Plus, X, Loader2, Edit2, Trash2, Package } from 'lucide-react';
+import { ShoppingCart, Plus, X, Loader2, Edit2, Trash2, Package, Search } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -17,6 +17,7 @@ export default function SourcingPage() {
   const [filterSucursal, setFilterSucursal] = useState('ALL');
   const [filterDateStart, setFilterDateStart] = useState('');
   const [filterDateEnd, setFilterDateEnd] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [loteForm, setLoteForm] = useState({ producto_id: '', proveedor_id: '', sucursal_id: '', cantidad: 1, fechaElaboracion: '', fechaVencimiento: '' });
   const toast = useToast();
 
@@ -90,7 +91,7 @@ export default function SourcingPage() {
 
   const handleCreateLote = async (e) => {
     e.preventDefault();
-    
+
     // Validacion cruzada frontend
     const selectedProd = products.find(p => p.id === loteForm.producto_id);
     if (selectedProd && loteForm.proveedor_id !== selectedProd.proveedor_id) {
@@ -120,35 +121,57 @@ export default function SourcingPage() {
   };
 
   const isProviderLocked = !!loteForm.producto_id;
-  
+
   const selectedProductObj = products.find(p => p.id === loteForm.producto_id);
   const showExpirationDate = selectedProductObj && ['Abarrotes y Alimentos', 'Bebidas'].includes(selectedProductObj.category);
 
   return (
-    <div className="space-y-6 animate-fadein">
+    <div className="full-width-container animate-fadein space-y-8">
 
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header-bar">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 tracking-tight">Entradas Operativas (Sourcing Físico)</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Registra las entradas físicas de cajas o unidades al inventario principal.</p>
+          <h1>Entradas Operativas (Sourcing)</h1>
+          <p>Registra las entradas físicas de cajas o unidades al inventario principal.</p>
         </div>
-        {hasPermission('sourcing_crear') && (
-          <button
-            onClick={showForm ? resetForm : () => setShowForm(true)}
-            className={showForm ? 'btn-secondary btn-sm flex items-center gap-2' : 'btn-sm flex items-center gap-2'}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setShowFilters(!showFilters)} 
+            className={`py-2 px-5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm ${
+              showFilters ? 'bg-indigo-500 text-white shadow-indigo-500/20' : 'bg-white/20 hover:bg-white/30 text-white'
+            }`}
           >
-            {showForm ? <><X size={18} strokeWidth={1.75} /> Cancelar</> : <><Plus size={18} strokeWidth={1.75} /> Registrar Nueva Entrada</>}
+            <Search size={18} /> {showFilters ? 'Ocultar Filtros' : 'Buscar / Filtrar'}
           </button>
-        )}
+          {hasPermission('sourcing_crear') && (
+            <button
+              onClick={showForm ? resetForm : () => setShowForm(true)}
+              className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm ${
+                showForm ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white text-[#184e77] hover:bg-slate-50'
+              }`}
+            >
+              {showForm ? <><X size={16} strokeWidth={1.75} /> Cancelar</> : <><Plus size={16} strokeWidth={1.75} /> Registrar Nueva Entrada</>}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add / Edit Form */}
       {showForm && (
-        <div className="card border-l-4 border-emerald-500">
-          <h3 className="mt-0 mb-6 pb-3 border-b border-slate-200 flex items-center gap-2 text-base font-semibold text-slate-800">
-            {editingId ? 'Editar Entrada Física' : 'Procesar Nueva Entrada Física'}
-          </h3>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm animate-fadeIn relative">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-6">
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider m-0">
+              {editingId ? 'Editar Entrada Física' : 'Procesar Nueva Entrada Física'}
+            </h3>
+            <button
+              type="button"
+              onClick={resetForm}
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors hover:bg-slate-50"
+              title="Cerrar Formulario"
+            >
+              <X size={16} />
+            </button>
+          </div>
           <form onSubmit={handleCreateLote}>
             <div className="form-grid">
               <div className="form-group">
@@ -206,78 +229,92 @@ export default function SourcingPage() {
               )}
             </div>
 
-            <div className="form-actions mt-6">
-              <button type="submit" className="btn-sm flex items-center gap-2">
-                <ShoppingCart size={18} strokeWidth={1.75} /> {editingId ? 'Guardar Cambios' : 'Confirmar Ingreso en Inventario'}
+            <div className="form-actions pt-4 border-t border-slate-100 mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors"
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm transition-colors flex items-center gap-2">
+                <ShoppingCart size={14} /> {editingId ? 'Guardar Cambios' : 'Confirmar Ingreso en Inventario'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap gap-3 items-end">
-        <div className="flex flex-col gap-1 min-w-[180px] flex-1">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filtrar Producto</span>
-          <select
-            value={filterProducto}
-            onChange={e => setFilterProducto(e.target.value)}
-            className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="ALL">Todos los productos</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.description ? `- ${p.description}` : ''} ({p.sku})</option>)}
-          </select>
+      {/* Filter Drawer */}
+      {showFilters && (
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row flex-wrap items-end md:items-center gap-4 animate-fadeIn">
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filtrar Producto</label>
+            <select
+              value={filterProducto}
+              onChange={e => setFilterProducto(e.target.value)}
+              className="w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+            >
+              <option value="ALL">-- Todos los productos --</option>
+              {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.description ? `- ${p.description}` : ''} ({p.sku})</option>)}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filtrar Sucursal</label>
+            <select
+              value={filterSucursal}
+              onChange={e => setFilterSucursal(e.target.value)}
+              className="w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+            >
+              <option value="ALL">-- Todas las sucursales --</option>
+              {sucursales.map(s => <option key={s.id} value={s.id}>{tenantName} ({s.name})</option>)}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Vence desde</label>
+            <input
+              type="date"
+              value={filterDateStart}
+              onChange={e => setFilterDateStart(e.target.value)}
+              className="w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+            />
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Vence hasta</label>
+            <input
+              type="date"
+              value={filterDateEnd}
+              onChange={e => setFilterDateEnd(e.target.value)}
+              className="w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+            />
+          </div>
+          <div className="w-full md:w-auto flex justify-end mt-2 md:mt-0">
+             <button onClick={() => { setFilterProducto('ALL'); setFilterSucursal('ALL'); setFilterDateStart(''); setFilterDateEnd(''); }} className="text-slate-400 hover:text-rose-600 text-xs font-bold uppercase tracking-wider transition-colors mb-2">
+               Limpiar Filtros
+             </button>
+          </div>
         </div>
-        <div className="flex flex-col gap-1 min-w-[180px] flex-1">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filtrar Sucursal</span>
-          <select
-            value={filterSucursal}
-            onChange={e => setFilterSucursal(e.target.value)}
-            className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="ALL">Todas las sucursales</option>
-            {sucursales.map(s => <option key={s.id} value={s.id}>{tenantName} ({s.name})</option>)}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1 min-w-[180px] flex-1">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Vence desde</span>
-          <input
-            type="date"
-            value={filterDateStart}
-            onChange={e => setFilterDateStart(e.target.value)}
-            className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500"
-          />
-        </div>
-        <div className="flex flex-col gap-1 min-w-[180px] flex-1">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Vence hasta</span>
-          <input
-            type="date"
-            value={filterDateEnd}
-            onChange={e => setFilterDateEnd(e.target.value)}
-            className="h-9 border border-slate-200 rounded-lg px-3 text-sm text-slate-700 bg-white focus:outline-none focus:border-blue-500"
-          />
-        </div>
-      </div>
+      )}
 
       {/* Table Section */}
-      <div className="card p-0 overflow-hidden">
+      <div className="table-premium-wrapper">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="animate-spin text-blue-600" size={32} />
+            <Loader2 className="animate-spin text-indigo-650" size={32} />
           </div>
         ) : (
-          <div className="data-table-wrapper mt-4">
-            <table>
+          <div className="overflow-x-auto">
+            <table className="table-premium">
               <thead>
                 <tr>
-                  <th>Lote TRx</th>
-                  <th>Fecha Ingreso</th>
-                  <th>Producto (SKU)</th>
-                  <th>Proveedor Origen</th>
-                  <th className="text-center">Unidades</th>
-                  <th className="text-center">Costo U. (Capturado)</th>
-                  <th className="text-right">Inversión Total</th>
-                  <th className="text-right w-20">Acciones</th>
+                  <th style={{ width: '12%' }}>Lote TRx</th>
+                  <th style={{ width: '15%' }}>Fecha Ingreso</th>
+                  <th style={{ width: '25%' }}>Producto (SKU)</th>
+                  <th style={{ width: '15%' }}>Proveedor Origen</th>
+                  <th className="text-right" style={{ width: '10%' }}>Unidades</th>
+                  <th className="text-right" style={{ width: '13%' }}>Costo U. (Capturado)</th>
+                  <th className="text-right" style={{ width: '10%' }}>Inversión Total</th>
+                  <th className="text-center" style={{ width: '10%' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -320,35 +357,37 @@ export default function SourcingPage() {
                             </span>
                           )}
                         </td>
-                        <td className="text-sm text-slate-500 whitespace-nowrap">
+                        <td className="text-xs text-slate-500 whitespace-nowrap">
                           {new Date(h.fechaIngreso).toLocaleDateString()} {new Date(h.fechaIngreso).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </td>
                         <td className="font-medium text-slate-800">
                           {h.producto?.name || '---'}
                           {h.producto?.description && (
-                            <span className="text-xs text-slate-400 mt-0.5 block">
+                            <span className="text-xs text-slate-455 mt-0.5 block">
                               Variante: {h.producto.description}
                             </span>
                           )}
                           <span className="text-xs text-slate-400 font-mono mt-0.5 block">SKU: {h.producto?.sku}</span>
                         </td>
-                        <td>{h.proveedor?.name || '---'}</td>
-                        <td className="text-center">
-                          <span className="badge success">+ {h.cantidad} U</span>
-                        </td>
-                        <td className="text-sm text-slate-500 text-center">Bs {costoSnap.toFixed(2)}</td>
-                        <td className="text-sm font-semibold text-blue-700 text-right">Bs {inversionTotal.toFixed(2)}</td>
+                        <td className="text-xs text-slate-600 font-medium">{h.proveedor?.name || '---'}</td>
                         <td className="text-right">
-                          {hasPermission('sourcing_editar') && (
-                            <button onClick={() => handleEdit(h)} className="btn-icon" title="Editar">
-                              <Edit2 size={16} />
-                            </button>
-                          )}
-                          {hasPermission('sourcing_eliminar') && (
-                            <button onClick={() => handleDelete(h.id)} className="btn-icon danger" title="Eliminar">
-                              <Trash2 size={16} />
-                            </button>
-                          )}
+                          <span className="inline-block bg-emerald-100 text-emerald-700 font-extrabold text-base px-3 py-1 rounded-lg border border-emerald-200 shadow-sm">+ {h.cantidad} U</span>
+                        </td>
+                        <td className="text-right text-sm text-slate-500 font-mono font-bold">Bs {costoSnap.toFixed(2)}</td>
+                        <td className="text-right text-lg font-black text-indigo-700 font-mono">Bs {inversionTotal.toFixed(2)}</td>
+                        <td className="text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {hasPermission('sourcing_editar') && (
+                              <button onClick={() => handleEdit(h)} className="btn-premium-icon" title="Editar">
+                                <Edit2 size={12} />
+                              </button>
+                            )}
+                            {hasPermission('sourcing_eliminar') && (
+                              <button onClick={() => handleDelete(h.id)} className="btn-premium-icon btn-premium-icon-danger" title="Eliminar">
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
