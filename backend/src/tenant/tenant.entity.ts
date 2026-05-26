@@ -1,5 +1,12 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
+export enum TenantStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  SUSPENDED = 'SUSPENDED',
+}
+
 @Entity('tenants')
 export class Tenant {
   @PrimaryGeneratedColumn('uuid')
@@ -16,6 +23,22 @@ export class Tenant {
 
   @Column()
   password: string;
+
+  @Column({
+    type: 'enum',
+    enum: TenantStatus,
+    default: TenantStatus.PENDING,
+  })
+  status: TenantStatus;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  logoUrl: string;
+
+  @Column({ nullable: true })
+  brandColor: string;
 
   @Column({ default: true })
   isActive: boolean;
