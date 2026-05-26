@@ -3,6 +3,7 @@ import { Tenant } from '../tenant/tenant.entity';
 import { Sucursal } from '../sucursales/sucursal.entity';
 
 export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
   OWNER = 'OWNER',
   SUPERVISOR = 'SUPERVISOR',
   VENDEDOR = 'VENDEDOR',
@@ -14,7 +15,7 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   tenant_id: string;
 
   @Column({ nullable: true })

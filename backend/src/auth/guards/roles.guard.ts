@@ -16,7 +16,13 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const { user } = context.switchToHttp().getRequest();
-    // El dueño siempre tiene permiso para todo
+    // El Super Admin tiene permiso para todo
+    if (user.role === UserRole.SUPER_ADMIN) return true;
+    
+    // Si la ruta requiere SUPER_ADMIN, nadie más puede entrar
+    if (requiredRoles.includes(UserRole.SUPER_ADMIN)) return false;
+
+    // El dueño de la tienda tiene permiso para todo dentro de su tienda
     if (user.role === UserRole.OWNER) return true;
     
     return requiredRoles.includes(user.role);

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Tenant } from '../tenant/tenant.entity';
+import { Tenant, TenantStatus } from '../tenant/tenant.entity';
 import { User, UserRole } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
@@ -116,19 +116,35 @@ export class AuthService {
       }
     }
 
-    if (!user.isActive || !user.tenant.isActive) {
-      throw new UnauthorizedException('La cuenta está inactiva');
+    if (!user.isActive) {
+      throw new UnauthorizedException('La cuenta de usuario está inactiva');
+    }
+
+    // Permitir login a SUPER_ADMIN independientemente del tenant
+    if (user.role !== UserRole.SUPER_ADMIN) {
+      if (!user.tenant) {
+        throw new UnauthorizedException('Usuario sin tienda asignada');
+      }
+      if (!user.tenant.isActive) {
+        throw new UnauthorizedException('La tienda está inactiva');
+      }
+      if (user.tenant.status === TenantStatus.PENDING) {
+        throw new UnauthorizedException('PENDING_APPROVAL');
+      }
+      if (user.tenant.status !== TenantStatus.APPROVED) {
+        throw new UnauthorizedException(`La tienda no está aprobada (Estado: ${user.tenant.status})`);
+      }
     }
 
     const payload = { 
       sub: user.id, 
       tenantId: user.tenant_id, 
       role: user.role,
-      tenantName: user.tenant.name 
+      tenantName: user.tenant?.name || 'Administración Global'
     };
 
     let userPermissions = null;
-    if (user.role !== UserRole.OWNER) {
+    if (user.role !== UserRole.OWNER && user.role !== UserRole.SUPER_ADMIN && user.tenant_id) {
       const allPermissions = await this.usersService.getPermissions(user.tenant_id);
       userPermissions = allPermissions.find(p => p.role === user.role) || {};
     }
@@ -141,7 +157,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         tenant_id: user.tenant_id,
-        tenant_name: user.tenant.name,
+        tenant_name: user.tenant?.name || 'Administración Global',
         permissions: userPermissions
       }
     };

@@ -13,6 +13,7 @@ import { SucursalesModule } from './sucursales/sucursales.module';
 import { UsersModule } from './users/users.module';
 import { AjustesModule } from './ajustes/ajustes.module';
 import { VentasModule } from './ventas/ventas.module';
+import { AdminModule } from './admin/admin.module';
 
 import { Tenant } from './tenant/tenant.entity';
 import { Proveedor } from './proveedores/proveedor.entity';
@@ -51,6 +52,7 @@ import { PermissionsGuard } from './auth/guards/permissions.guard';
     UsersModule,
     AjustesModule,
     VentasModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
