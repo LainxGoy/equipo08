@@ -34,6 +34,8 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       await api.patch('/tenant/profile', profile);
+      localStorage.setItem('tenant_logo', profile.logoUrl || '');
+      window.dispatchEvent(new Event('tenant_logo_updated'));
       toast.success('Configuración guardada correctamente');
     } catch (err) {
       toast.error('Error al guardar configuración');
