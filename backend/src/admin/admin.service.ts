@@ -2,12 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant, TenantStatus } from '../tenant/tenant.entity';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Tenant)
     private tenantRepo: Repository<Tenant>,
+    private mailService: MailService,
   ) {}
 
   async getAllTenants() {
@@ -26,6 +28,16 @@ export class AdminService {
     if (!tenant) throw new NotFoundException('Tienda no encontrada');
     
     tenant.status = status;
-    return this.tenantRepo.save(tenant);
+    const savedTenant = await this.tenantRepo.save(tenant);
+
+    if (tenant.email) {
+      if (status === TenantStatus.APPROVED) {
+        this.mailService.sendApprovalEmail(tenant.email, tenant.name).catch(e => console.error(e));
+      } else if (status === TenantStatus.REJECTED || status === TenantStatus.SUSPENDED) {
+        this.mailService.sendStatusEmail(tenant.email, tenant.name, status).catch(e => console.error(e));
+      }
+    }
+
+    return savedTenant;
   }
 }

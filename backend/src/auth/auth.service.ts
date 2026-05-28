@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { Tenant, TenantStatus } from '../tenant/tenant.entity';
 import { User, UserRole } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly tenantRep: Repository<Tenant>,
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly mailService: MailService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -61,8 +63,11 @@ export class AuthService {
 
       await queryRunner.commitTransaction();
 
+      // Enviar correo de confirmación de registro de forma asíncrona
+      this.mailService.sendRegistrationEmail(dto.email, dto.name).catch(e => console.error(e));
+
       return {
-        message: 'Tienda y administrador registrados correctamente',
+        message: 'Cuenta creada y pendiente de aprobación.',
         tenant_id: savedTenant.id,
       };
     } catch (err) {
@@ -158,6 +163,7 @@ export class AuthService {
         role: user.role,
         tenant_id: user.tenant_id,
         tenant_name: user.tenant?.name || 'Administración Global',
+        tenant_logoUrl: user.tenant?.logoUrl || null,
         permissions: userPermissions
       }
     };
