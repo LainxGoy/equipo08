@@ -17,6 +17,7 @@ import LandingPage from './pages/LandingPage';
 import AdminConsolePage from './pages/AdminConsolePage';
 import SettingsPage from './pages/SettingsPage';
 import PublicCatalogPage from './pages/PublicCatalogPage';
+import DashboardPage from './pages/DashboardPage';
 import { ToastProvider } from './components/ToastContext';
 import {
   Users, Package, ShoppingCart, LogOut, Tag, Archive,
@@ -204,29 +205,6 @@ function Sidebar({ setAuthToken, permissions, isOpen, setIsOpen }) {
   );
 }
 
-/* ─── DASHBOARD HOME ────────────────────────────────────────────── */
-function DashboardHome() {
-  const userName = sessionStorage.getItem('user_name') || 'Usuario';
-  const userRole = sessionStorage.getItem('user_role') || 'VENDEDOR';
-
-  return (
-    <div className="max-w-xl mx-auto mt-16">
-      <div className="card text-center p-10">
-        <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-5">
-          <LayoutDashboard size={22} className="text-blue-600" strokeWidth={1.75} />
-        </div>
-        <h1 className="text-xl font-bold text-slate-900 mb-1.5 tracking-tight">Panel de Control</h1>
-        <p className="text-sm text-slate-500 mb-5 leading-relaxed">
-          Bienvenido, <span className="font-semibold text-slate-800">{userName}</span>.<br />
-          Usa la barra lateral para navegar entre los módulos del sistema.
-        </p>
-        <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 uppercase tracking-wider">
-          Rol: {userRole}
-        </span>
-      </div>
-    </div>
-  );
-}
 
 /* ─── APP ROOT ──────────────────────────────────────────────────── */
 function App() {
@@ -333,7 +311,7 @@ function App() {
                 <div className={`main-content transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] relative`}>
                   <AnimatePresence mode="wait">
                     <Routes location={location} key={location.pathname}>
-                      <Route path="/"              element={<PageTransition><DashboardHome /></PageTransition>} />
+                      <Route path="/"              element={<PageTransition><DashboardPage     key={authToken} /></PageTransition>} />
                       <Route path="/providers"     element={<PageTransition><ProvidersPage     key={authToken} /></PageTransition>} />
                       <Route path="/sucursales"    element={<PageTransition><SucursalesPage    key={authToken} /></PageTransition>} />
                       <Route path="/products"      element={<PageTransition><ProductsPage      key={authToken} /></PageTransition>} />
