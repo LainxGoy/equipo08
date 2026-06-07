@@ -39,6 +39,12 @@ export class Venta {
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   total: number;
 
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  costoTotal: number;
+
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  utilidadTotal: number;
+
   @ManyToOne(() => Sucursal)
   @JoinColumn({ name: 'sucursal_id' })
   sucursal: Sucursal;
