@@ -13,6 +13,8 @@ export default function SalesPage() {
   const [cart, setCart] = useState([]);
   const [clienteNombre, setClienteNombre] = useState('Cliente Casual');
   const [clienteDocumento, setClienteDocumento] = useState('');
+  const [metodoPago, setMetodoPago] = useState('Efectivo');
+  const [montoRecibido, setMontoRecibido] = useState('');
   
   const [salesHistory, setSalesHistory] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -138,6 +140,10 @@ export default function SalesPage() {
         sucursal_id: selectedBranch,
         clienteNombre,
         clienteDocumento,
+        metodoPago,
+        montoRecibido: Number(montoRecibido) || cartTotal,
+        cambio: Math.max(0, (Number(montoRecibido) || cartTotal) - cartTotal),
+        vendedorNombre: sessionStorage.getItem('user_name') || 'Cajero',
         items: cart.map(item => ({ producto_id: item.producto_id, cantidad: item.cantidad }))
       };
 
@@ -147,6 +153,8 @@ export default function SalesPage() {
       setCart([]);
       setClienteNombre('Cliente Casual');
       setClienteDocumento('');
+      setMetodoPago('Efectivo');
+      setMontoRecibido('');
       
       fetchStock();
       fetchSalesHistory();
@@ -192,13 +200,13 @@ export default function SalesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
       {/* Left Column: POS / Terminal */}
-      <div className="lg:col-span-7 bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col gap-6 min-h-[680px]">
+      <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-6 min-h-[680px]">
         <div className="flex justify-between items-center pb-4 border-b border-slate-100">
           <div>
-            <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <ShoppingCart size={20} className="text-indigo-600" /> Terminal de Venta
+            <h3 className="text-lg font-bold text-slate-800">
+              Terminal de Venta
             </h3>
-            <p className="text-sm text-slate-500 mt-1 font-medium">
+            <p className="text-sm text-slate-500 mt-1">
               {isBranchLocked ? `Sucursal: ${userSucursalName || 'Asignada'}. Añade productos al carrito.` : 'Selecciona la sucursal y añade productos al carrito.'}
             </p>
           </div>
@@ -246,24 +254,23 @@ export default function SalesPage() {
                 <div 
                   key={s.id} 
                   onClick={() => addToCart(s)}
-                  className="group bg-white hover:bg-slate-50/50 border border-slate-200 hover:border-indigo-300 rounded-2xl p-5 cursor-pointer transition-all duration-200 active:scale-[0.97] flex flex-col justify-between min-h-[140px] hover:shadow-lg hover:shadow-indigo-500/5 relative overflow-hidden"
+                  className="bg-white border border-slate-200 hover:border-indigo-400 rounded-xl p-4 cursor-pointer transition-colors flex flex-col justify-between min-h-[130px]"
                 >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div>
-                    <div className="flex justify-between items-start gap-1 mb-2">
-                      <span className="font-mono text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">{s.producto?.sku}</span>
-                      <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider ${
-                        s.cantidadTotal <= 5 ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs text-slate-500 uppercase">{s.producto?.sku}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
+                        s.cantidadTotal <= 5 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'
                       }`}>
-                        {s.cantidadTotal} DISP.
+                        {s.cantidadTotal} Disp.
                       </span>
                     </div>
-                    <strong className="text-sm font-extrabold text-slate-900 leading-snug mt-1 block line-clamp-2">{s.producto?.name}</strong>
+                    <strong className="text-sm font-semibold text-slate-800 block line-clamp-2">{s.producto?.name}</strong>
                   </div>
-                  <div className="flex justify-between items-end mt-4">
-                    <span className="text-lg font-black text-slate-900 tracking-tight">Bs {Number(s.producto?.precioVenta || 0).toFixed(2)}</span>
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                      <Plus size={16} strokeWidth={3} />
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-lg font-bold text-slate-900">Bs {Number(s.producto?.precioVenta || 0).toFixed(2)}</span>
+                    <div className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors">
+                      <Plus size={16} />
                     </div>
                   </div>
                 </div>
@@ -277,13 +284,10 @@ export default function SalesPage() {
       <div className="lg:col-span-5 flex flex-col gap-6">
         
         {/* Cart Form */}
-        <div className="bg-white border-2 border-slate-200/60 rounded-3xl p-7 shadow-xl shadow-slate-200/40 flex flex-col gap-6 relative overflow-hidden">
-          {/* Decorative Receipt Header */}
-          <div className="absolute top-0 left-0 w-full h-2 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDEwIDEwLDAgMjAsMTAiIGZpbGw9IiNmMThmYWQiLz48L3N2Zz4=')] opacity-50" />
-          
-          <div className="flex justify-between items-center pb-4 border-b border-slate-200 mt-2">
-            <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Receipt size={22} className="text-indigo-600" /> Resumen de Venta
+        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-6">
+          <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+            <h3 className="text-lg font-bold text-slate-800">
+              Resumen de Venta
             </h3>
             {cart.length > 0 && (
               <button 
@@ -320,22 +324,57 @@ export default function SalesPage() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4">
+            <div className="form-group">
+              <label htmlFor="metodo-pago" className="text-xs font-bold text-slate-600 uppercase tracking-wider">Método de Pago</label>
+              <select 
+                id="metodo-pago"
+                value={metodoPago} 
+                onChange={e => setMetodoPago(e.target.value)} 
+                className="w-full py-2.5 px-4 border border-slate-200 rounded-xl text-sm font-semibold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              >
+                <option value="Efectivo">Efectivo</option>
+                <option value="QR">QR</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="monto-recibido" className="text-xs font-bold text-slate-600 uppercase tracking-wider">Monto Recibido</label>
+              <input 
+                id="monto-recibido"
+                type="number" 
+                min="0"
+                step="0.01"
+                value={montoRecibido} 
+                onChange={e => setMontoRecibido(e.target.value)} 
+                placeholder={`Mín. Bs ${cartTotal.toFixed(2)}`} 
+                className="w-full py-2.5 px-4 border border-slate-200 rounded-xl text-sm font-semibold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              />
+            </div>
+          </div>
+          {montoRecibido && Number(montoRecibido) >= cartTotal && cartTotal > 0 && (
+            <div className="mt-2 text-right text-sm font-bold text-emerald-600 bg-emerald-50 py-2 px-4 rounded-lg flex justify-between">
+              <span>Cambio / Vuelto:</span>
+              <span>Bs {(Number(montoRecibido) - cartTotal).toFixed(2)}</span>
+            </div>
+          )}
+
           <div className="h-px bg-slate-100" />
 
           {/* Cart Items List */}
           <div className="overflow-y-auto max-h-[300px] pr-2 min-h-[150px] custom-scrollbar">
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-10 opacity-60">
-                <ShoppingCart size={40} className="text-slate-300 mb-4" strokeWidth={1.5} />
-                <p className="text-slate-500 text-sm font-medium">No hay artículos en el carrito.<br/>Añade productos de la terminal.</p>
+                <p className="text-slate-500 text-sm">No hay artículos en el carrito.<br/>Añade productos de la terminal.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {cart.map(item => (
-                  <div key={item.producto_id} className="flex justify-between items-center py-3 px-4 bg-white border border-slate-200 hover:border-slate-300 rounded-xl gap-3 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] transition-colors group">
+                  <div key={item.producto_id} className="flex justify-between items-center py-3 px-4 bg-white border border-slate-200 rounded-xl gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-extrabold text-slate-900 truncate tracking-tight">{item.name}</div>
-                      <div className="text-[11px] text-slate-500 font-semibold mt-0.5 uppercase tracking-wider">Bs {item.precioUnitario.toFixed(2)} c/u</div>
+                      <div className="text-sm font-semibold text-slate-800 truncate">{item.name}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Bs {item.precioUnitario.toFixed(2)} c/u</div>
                     </div>
                     <div className="flex items-center gap-4 flex-shrink-0">
                       <input 
@@ -344,15 +383,15 @@ export default function SalesPage() {
                         max={item.maxStock} 
                         value={item.cantidad} 
                         onChange={e => updateCartQty(item.producto_id, parseInt(e.target.value) || 1)}
-                        className="w-14 text-center py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-black focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        className="w-16 text-center py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400"
                       />
-                      <span className="text-sm font-black text-slate-800 w-20 text-right font-mono">
+                      <span className="text-sm font-bold text-slate-800 w-20 text-right">
                         Bs {(item.cantidad * item.precioUnitario).toFixed(2)}
                       </span>
                       <button 
                         onClick={() => removeFromCart(item.producto_id)} 
-                        className="text-slate-300 hover:text-white bg-transparent hover:bg-rose-500 p-1.5 rounded-lg transition-colors"
-                        title="Eliminar ítem"
+                        className="text-red-500 hover:text-red-700 p-1.5 bg-transparent"
+                        title="Eliminar"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -364,56 +403,21 @@ export default function SalesPage() {
           </div>
 
           {/* Total Section */}
-          <div className="flex justify-between items-center p-5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-2xl">
-            <span className="text-sm font-extrabold text-slate-500 uppercase tracking-widest">Monto Total</span>
-            <span className="text-3xl font-black text-indigo-700 font-mono tracking-tighter">Bs {cartTotal.toFixed(2)}</span>
+          <div className="flex justify-between items-center py-4 border-t border-slate-200">
+            <span className="text-base font-bold text-slate-600">Monto Total</span>
+            <span className="text-xl font-bold">Bs {cartTotal.toFixed(2)}</span>
           </div>
 
           <button 
-            onClick={handleRegisterSale} 
+            onClick={handleRegisterSale}
             disabled={saving || cart.length === 0}
-            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none text-white font-extrabold rounded-2xl text-base flex items-center justify-center gap-3 shadow-lg shadow-indigo-600/30 transition-all duration-200 active:scale-[0.98]"
+            className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold transition-colors disabled:opacity-50"
           >
-            <Printer size={20} strokeWidth={2.5} /> 
-            <span>{saving ? 'Registrando venta...' : 'Cobrar y Emitir Comprobante'}</span>
+            {saving ? 'Registrando...' : 'Confirmar Venta y Cobrar'}
           </button>
         </div>
 
-        {/* History List */}
-        <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider m-0">
-               Historial de Comprobantes Recientes
-            </h4>
-          </div>
-          <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-            {salesHistory.length === 0 ? (
-              <p className="text-xs text-slate-400 font-medium py-4 text-center">No hay registros de ventas anteriores.</p>
-            ) : (
-              salesHistory.map(sale => (
-                <div key={sale.id} className="flex justify-between items-center p-3 border border-slate-150 rounded-lg bg-white hover:bg-slate-50 transition-colors">
-                  <div>
-                    <div className="text-xs font-mono font-bold text-slate-900">{sale.numeroComprobante}</div>
-                    <div className="text-[10px] text-slate-450 font-medium mt-0.5">
-                      {new Date(sale.fecha).toLocaleDateString()} &bull; {sale.clienteNombre}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-slate-800">Bs {Number(sale.total).toFixed(2)}</span>
-                    <button 
-                      onClick={() => downloadPdf(sale.id, sale.numeroComprobante)}
-                      disabled={downloading === sale.id}
-                      title="Descargar PDF"
-                      className="p-1.5 bg-slate-50 text-slate-600 hover:text-indigo-600 rounded-md hover:bg-slate-100 transition-all"
-                    >
-                      <Download size={13} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+
 
       </div>
     </div>
