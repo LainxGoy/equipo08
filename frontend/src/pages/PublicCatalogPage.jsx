@@ -14,6 +14,7 @@ export default function PublicCatalogPage() {
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedAttributes, setSelectedAttributes] = useState({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const getImageUrl = (url) => {
@@ -82,11 +83,46 @@ export default function PublicCatalogPage() {
 
   useEffect(() => {
     if (selectedProduct) {
-      setSelectedVariant(selectedProduct.items[0]);
+      const firstVariant = selectedProduct.items[0];
+      setSelectedVariant(firstVariant);
+      setSelectedAttributes(firstVariant?.attributes || {});
     } else {
       setSelectedVariant(null);
+      setSelectedAttributes({});
     }
   }, [selectedProduct]);
+
+  const allAttributesGrouped = useMemo(() => {
+    if (!selectedProduct) return {};
+    const grouped = {};
+    selectedProduct.items.forEach(item => {
+      if (item.attributes) {
+        Object.entries(item.attributes).forEach(([key, val]) => {
+          if (!grouped[key]) grouped[key] = new Set();
+          if (val) grouped[key].add(val);
+        });
+      }
+    });
+    const result = {};
+    Object.entries(grouped).forEach(([key, set]) => {
+      result[key] = Array.from(set);
+    });
+    return result;
+  }, [selectedProduct]);
+
+  const handleSelectAttribute = (key, value) => {
+    const nextAttrs = { ...selectedAttributes, [key]: value };
+    let match = selectedProduct.items.find(item => 
+      Object.entries(nextAttrs).every(([k, v]) => item.attributes?.[k] === v)
+    );
+    if (!match) {
+      match = selectedProduct.items.find(item => item.attributes?.[key] === value);
+    }
+    if (match) {
+      setSelectedVariant(match);
+      setSelectedAttributes(match.attributes || {});
+    }
+  };
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -438,30 +474,61 @@ export default function PublicCatalogPage() {
 
                 {/* Selector de variantes */}
                 {selectedProduct.items.length > 1 && (
-                  <div className="mb-6">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--txt-secondary)] mb-2 block">
-                      Selecciona una variante
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedProduct.items.map(variant => {
-                        const label = getVariantLabel(variant);
-                        const isSelected = selectedVariant?.id === variant.id;
-                        return (
-                          <div
-                            key={variant.id}
-                            role="button"
-                            onClick={() => setSelectedVariant(variant)}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border-2 transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900 shadow-sm'
-                                : 'bg-transparent border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
-                            }`}
-                          >
-                            {label || 'Única'} (Bs {Number(variant.precioVenta).toFixed(0)})
+                  <div className="mb-6 flex flex-col gap-4">
+                    {Object.keys(allAttributesGrouped).length > 0 ? (
+                      Object.entries(allAttributesGrouped).map(([key, values]) => (
+                        <div key={key}>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--txt-secondary)] mb-2 block">
+                            {key}
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {values.map(val => {
+                              const isSelected = selectedAttributes[key] === val;
+                              return (
+                                <div
+                                  key={val}
+                                  role="button"
+                                  onClick={() => handleSelectAttribute(key, val)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900 shadow-sm'
+                                      : 'bg-transparent border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                                  }`}
+                                >
+                                  {val}
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--txt-secondary)] mb-2 block">
+                          Selecciona una variante
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedProduct.items.map(variant => {
+                            const label = getVariantLabel(variant);
+                            const isSelected = selectedVariant?.id === variant.id;
+                            return (
+                              <div
+                                key={variant.id}
+                                role="button"
+                                onClick={() => setSelectedVariant(variant)}
+                                className={`px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border-2 transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900 shadow-sm'
+                                    : 'bg-transparent border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                                }`}
+                              >
+                                {label || 'Única'} (Bs {Number(variant.precioVenta).toFixed(0)})
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
