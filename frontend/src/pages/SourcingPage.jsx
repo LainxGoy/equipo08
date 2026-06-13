@@ -302,15 +302,9 @@ export default function SourcingPage() {
                                   setProductSearchQuery(label);
                                   setShowProductDropdown(false);
                                 }}
-                                className="w-full text-left px-4 py-3 text-xs text-slate-800 hover:bg-slate-50 hover:text-indigo-600 transition-all block whitespace-nowrap overflow-hidden text-ellipsis border-none bg-white"
+                                className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors block border-none bg-white font-sans"
                               >
-                                <span className="font-semibold text-slate-800">{p.name}</span>
-                                {p.attributes && Object.keys(p.attributes).length > 0 && (
-                                  <span className="text-slate-500 font-medium ml-1">
-                                    ({Object.values(p.attributes).join(' | ')})
-                                  </span>
-                                )}
-                                {p.sku && <span className="block text-[10px] text-slate-400 font-mono mt-0.5">SKU: {p.sku}</span>}
+                                {label}
                               </button>
                             );
                           });
