@@ -33,8 +33,8 @@ export default function RegisterPage() {
         nit,
         razonSocial
       });
-      toast.success('Cuenta comercial creada con éxito. Ya puedes iniciar sesión.');
-      navigate('/login');
+      alert('Tu solicitud de registro ha sido recibida con éxito.\n\nTu espacio comercial se encuentra en revisión. Te confirmaremos la aprobación por correo electrónico (Gmail) en las próximas horas.');
+      navigate('/');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al registrar la tienda.');
     } finally {
@@ -183,7 +183,7 @@ export default function RegisterPage() {
             disabled={loading} 
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 mt-4 shadow-sm"
           >
-            {loading ? 'Configurando espacio...' : 'Comenzar a usar BolClick'} 
+            {loading ? 'Enviando solicitud...' : 'Solicitar Registro de Tienda'} 
             {!loading && <ArrowRight size={18} />}
           </button>
         </form>
