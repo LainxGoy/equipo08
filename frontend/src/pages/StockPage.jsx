@@ -448,13 +448,14 @@ export default function StockPage() {
                             const costoPromedio = s.cantidadTotal > 0 ? (valuation / s.cantidadTotal) : 0;
                             return (
                               <tr key={s.id} className={`bg-slate-100/20 dark:bg-slate-900/10 border-l border-slate-200 ${isAlerta ? 'bg-rose-50/10' : ''}`}>
-                                <td className="pl-6 text-xs text-slate-500 font-mono">{s.producto?.sku}</td>
+                                <td className="pl-6 text-xs text-slate-400 font-mono">-</td>
                                 <td className="pl-8">
                                   <div className="flex items-center gap-2">
                                     <span className="text-slate-300 dark:text-slate-750 font-mono">└─</span>
                                     <div className="flex flex-col items-start">
+                                      <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">SKU: {s.producto?.sku}</span>
                                       {s.producto?.attributes && Object.keys(s.producto.attributes).length > 0 ? (
-                                        <div className="flex flex-wrap gap-1 mt-0.5">
+                                        <div className="flex flex-wrap gap-1 mt-1">
                                           {Object.entries(s.producto.attributes).map(([k, v]) => v ? (
                                             <span key={k} className="text-[9px] text-slate-500 font-bold border border-slate-200/80 px-1.5 py-0.5 rounded uppercase tracking-wider bg-white dark:bg-slate-850 shadow-sm">
                                               {k}: {v}
