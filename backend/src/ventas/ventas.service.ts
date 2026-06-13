@@ -244,4 +244,13 @@ export class VentasService {
     }
     return pdfPath;
   }
+
+  async findClientByDocument(documento: string, tenant_id: string): Promise<any> {
+    const venta = await this.ventaRep.findOne({
+      where: { tenant_id, clienteDocumento: documento },
+      order: { fecha: 'DESC' }
+    });
+    if (!venta) return null;
+    return { clienteNombre: venta.clienteNombre };
+  }
 }

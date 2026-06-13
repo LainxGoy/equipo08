@@ -338,6 +338,11 @@ export default function PosPage() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
+    const receivedVal = Number(montoRecibido) || total;
+    if (metodoPago === 'Efectivo' && receivedVal < total) {
+      toast.error('El monto recibido no puede ser menor al total a cobrar');
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -365,6 +370,20 @@ export default function PosPage() {
       toast.error('Error al procesar la orden');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDocumentChange = async (doc) => {
+    setClienteDocumento(doc);
+    if (doc.trim().length >= 5) {
+      try {
+        const res = await api.get(`/ventas/cliente/${doc}`);
+        if (res.data && res.data.clienteNombre) {
+          setClienteNombre(res.data.clienteNombre);
+        }
+      } catch (err) {
+        // Ignore silently
+      }
     }
   };
 
@@ -658,7 +677,7 @@ export default function PosPage() {
                 <input 
                   type="text" 
                   value={clienteDocumento} 
-                  onChange={e => setClienteDocumento(e.target.value)} 
+                  onChange={e => handleDocumentChange(e.target.value)} 
                   placeholder="Ej. 1234567" 
                   className="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-white placeholder:text-slate-400"
                 />

@@ -57,4 +57,11 @@ export class VentasController {
     const fileStream = fs.createReadStream(pdfPath);
     fileStream.pipe(res);
   }
+
+  @Get('cliente/:doc')
+  @RequirePermission('ventas.crear')
+  async findClientByDocument(@Param('doc') doc: string, @TenantId() tenant_id: string) {
+    const client = await this.ventasService.findClientByDocument(doc, tenant_id);
+    return client || { clienteNombre: '' };
+  }
 }
