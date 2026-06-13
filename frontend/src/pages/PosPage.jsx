@@ -398,7 +398,7 @@ export default function PosPage() {
                       <p className="text-[11px] text-slate-400 line-clamp-1 mb-auto leading-relaxed">{group.description}</p>
                     )}
                     <div className="mt-3 flex justify-between items-end">
-                      <span className="text-base font-black text-slate-900">
+                      <span className="text-base font-bold text-slate-800">
                         Bs {group.price.toFixed(2)}
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 uppercase">
@@ -473,7 +473,7 @@ export default function PosPage() {
                     <div className="flex-1 flex flex-col justify-center min-w-0">
                       <div className="flex justify-between items-start mb-1">
                         <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate pr-2 leading-tight">{item.name}</h4>
-                        <span className="text-sm font-black text-slate-900 dark:text-white whitespace-nowrap shrink-0">Bs {item.precioUnitario.toFixed(2)}</span>
+                        <span className="text-sm font-bold text-slate-800 dark:text-white whitespace-nowrap shrink-0">Bs {item.precioUnitario.toFixed(2)}</span>
                       </div>
                       <div className="text-[11px] text-slate-400 mb-3 flex flex-col gap-0.5">
                         <span>SKU: {item.sku}</span>
@@ -539,15 +539,11 @@ export default function PosPage() {
             </div>
             <div className="flex justify-between items-center mt-2 border-t border-slate-100 pt-3">
               <span className="text-slate-800 font-medium">Total a Cobrar</span>
-              <span className="text-xl font-black text-slate-900">Bs {total.toFixed(2)}</span>
+              <span className="text-xl font-bold text-slate-800">Bs {total.toFixed(2)}</span>
             </div>
           </div>
 
           <div className="flex gap-3 h-[52px]">
-            <div role="button" className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer">
-              <Bell size={18} className="mb-0.5" />
-              <span className="text-[10px] font-bold">Aviso</span>
-            </div>
             <div 
               role="button" 
               onClick={cart.length > 0 ? handleHoldOrder : undefined}
@@ -631,7 +627,7 @@ export default function PosPage() {
               <div className="mt-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-col gap-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600 dark:text-slate-400">Total a Pagar</span>
-                  <span className="font-bold text-slate-900 dark:text-white">Bs {total.toFixed(2)}</span>
+                  <span className="font-bold text-slate-800 dark:text-white">Bs {total.toFixed(2)}</span>
                 </div>
                 {montoRecibido && Number(montoRecibido) > total && (
                   <div className="flex justify-between text-sm pt-2 border-t border-slate-200 dark:border-slate-700">
