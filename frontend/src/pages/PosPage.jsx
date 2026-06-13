@@ -339,7 +339,7 @@ export default function PosPage() {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
     const receivedVal = Number(montoRecibido) || total;
-    if (metodoPago === 'Efectivo' && receivedVal < total) {
+    if (receivedVal < total) {
       toast.error('El monto recibido no puede ser menor al total a cobrar');
       return;
     }
