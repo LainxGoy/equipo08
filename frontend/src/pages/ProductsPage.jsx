@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { getBackendUrl } from '../api';
-import { PackageSearch, Plus, X, Loader2, Edit2, Trash2, AlertTriangle, Tag, Search, Copy } from 'lucide-react';
+import { PackageSearch, Plus, X, Loader2, Edit2, Trash2, AlertTriangle, Tag, Search, Copy, ChevronRight, ChevronDown } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -27,6 +27,14 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('ALL');
   const toast = useToast();
+  const [expandedProducts, setExpandedProducts] = useState({});
+
+  const toggleExpand = (name) => {
+    setExpandedProducts(prev => ({
+      ...prev,
+      [name]: !prev[name]
+    }));
+  };
 
   const [uploading, setUploading] = useState(false);
 
@@ -523,7 +531,17 @@ export default function ProductsPage() {
                     }
                     return true;
                   });
-                  if (filtered.length === 0) return (
+
+                  // Group by name
+                  const groups = {};
+                  filtered.forEach(p => {
+                    if (!groups[p.name]) {
+                      groups[p.name] = [];
+                    }
+                    groups[p.name].push(p);
+                  });
+
+                  if (Object.keys(groups).length === 0) return (
                     <tr>
                       <td colSpan="7" className="text-center py-16 text-slate-400 font-medium">
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -533,78 +551,187 @@ export default function ProductsPage() {
                       </td>
                     </tr>
                   );
-                  return filtered.map(p => (
-                    <tr key={p.id}>
-                      <td>
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="text-sm text-slate-800">{p.name}</span>
-                          {p.attributes && Object.keys(p.attributes).length > 0 ? (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {Object.entries(p.attributes).map(([key, val]) => val ? (
-                                <span key={key} className="text-[10px] text-slate-400 font-semibold border border-slate-200 px-1.5 py-0.5 rounded uppercase tracking-wider bg-slate-50">
-                                  {key}: {val}
-                                </span>
-                              ) : null)}
+
+                  return Object.keys(groups).map(name => {
+                    const variants = groups[name];
+                    const isExpanded = !!expandedProducts[name];
+                    
+                    if (variants.length === 1) {
+                      // Single product row (no variants)
+                      const p = variants[0];
+                      return (
+                        <tr key={p.id}>
+                          <td>
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="text-sm font-semibold text-slate-800">{p.name}</span>
+                              {p.attributes && Object.keys(p.attributes).length > 0 ? (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {Object.entries(p.attributes).map(([key, val]) => val ? (
+                                    <span key={key} className="text-[10px] text-slate-400 font-semibold border border-slate-200 px-1.5 py-0.5 rounded uppercase tracking-wider bg-slate-50">
+                                      {key}: {val}
+                                    </span>
+                                  ) : null)}
+                                </div>
+                              ) : p.description ? (
+                                <span className="text-xs text-slate-400 truncate max-w-[150px]">Var: {p.description}</span>
+                              ) : null}
                             </div>
-                          ) : p.description ? (
-                            <span className="text-xs text-slate-400 truncate max-w-[150px]">Var: {p.description}</span>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="text-sm text-slate-800">
-                        {p.category || 'Otros'}
-                      </td>
-                      <td className="text-sm text-slate-800">
-                        {p.proveedor?.name || 'Huérfano'}
-                      </td>
-                      <td className="text-right text-sm text-slate-800">
-                        {(() => {
-                          const c = Number(p.precioCosto) || 0;
-                          const v = Number(p.precioVenta) || 0;
-                          const profit = v - c;
-                          const pct = v > 0 ? (profit / v) * 100 : 0;
-                          return `${pct.toFixed(0)}%`;
-                        })()}
-                      </td>
-                      <td className="text-right text-sm text-slate-800">
-                        Bs {Number(p.precioCosto).toFixed(2)}
-                      </td>
-                      <td className="text-right text-sm text-slate-800">
-                        Bs {Number(p.precioVenta).toFixed(2)}
-                      </td>
-                      <td className="text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          {hasPermission('catalogo_crear') && (
-                            <button 
-                              onClick={() => handleCloneVariant(p)} 
-                              className="btn-premium-icon text-indigo-600 dark:text-indigo-400"
-                              title="Agregar Variante"
-                            >
-                              <Copy size={15} />
-                            </button>
-                          )}
-                          {hasPermission('catalogo_editar') && (
-                            <button 
-                              onClick={() => handleEdit(p)} 
-                              className="btn-premium-icon"
-                              title="Editar"
-                            >
-                              <Edit2 size={15} />
-                            </button>
-                          )}
-                          {hasPermission('catalogo_eliminar') && (
-                            <button 
-                              onClick={() => handleDelete(p.id)} 
-                              className="btn-premium-icon btn-premium-icon-danger"
-                              title="Eliminar"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ));
+                          </td>
+                          <td className="text-sm text-slate-800">{p.category || 'Otros'}</td>
+                          <td className="text-sm text-slate-800">{p.proveedor?.name || 'Huérfano'}</td>
+                          <td className="text-right text-sm text-slate-800">
+                            {(() => {
+                              const c = Number(p.precioCosto) || 0;
+                              const v = Number(p.precioVenta) || 0;
+                              const profit = v - c;
+                              const pct = v > 0 ? (profit / v) * 100 : 0;
+                              return `${pct.toFixed(0)}%`;
+                            })()}
+                          </td>
+                          <td className="text-right text-sm text-slate-800">Bs {Number(p.precioCosto).toFixed(2)}</td>
+                          <td className="text-right text-sm text-slate-800">Bs {Number(p.precioVenta).toFixed(2)}</td>
+                          <td className="text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {hasPermission('catalogo_crear') && (
+                                <button 
+                                  onClick={() => handleCloneVariant(p)} 
+                                  className="btn-premium-icon text-indigo-600 dark:text-indigo-400"
+                                  title="Agregar Variante"
+                                >
+                                  <Copy size={15} />
+                                </button>
+                              )}
+                              {hasPermission('catalogo_editar') && (
+                                <button 
+                                  onClick={() => handleEdit(p)} 
+                                  className="btn-premium-icon"
+                                  title="Editar"
+                                >
+                                  <Edit2 size={15} />
+                                </button>
+                              )}
+                              {hasPermission('catalogo_eliminar') && (
+                                <button 
+                                  onClick={() => handleDelete(p.id)} 
+                                  className="btn-premium-icon btn-premium-icon-danger"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    } else {
+                      // Multi-variant parent row
+                      const main = variants[0];
+                      const minCosto = Math.min(...variants.map(v => Number(v.precioCosto) || 0));
+                      const maxCosto = Math.max(...variants.map(v => Number(v.precioCosto) || 0));
+                      const minVenta = Math.min(...variants.map(v => Number(v.precioVenta) || 0));
+                      const maxVenta = Math.max(...variants.map(v => Number(v.precioVenta) || 0));
+
+                      const displayCosto = minCosto === maxCosto ? `Bs ${minCosto.toFixed(2)}` : `Bs ${minCosto.toFixed(0)} - Bs ${maxCosto.toFixed(0)}`;
+                      const displayVenta = minVenta === maxVenta ? `Bs ${minVenta.toFixed(2)}` : `Bs ${minVenta.toFixed(0)} - Bs ${maxVenta.toFixed(0)}`;
+
+                      return (
+                        <React.Fragment key={name}>
+                          <tr className="bg-slate-50/40 dark:bg-slate-900/20 font-bold border-l-4 border-indigo-500">
+                            <td>
+                              <div 
+                                role="button" 
+                                onClick={() => toggleExpand(name)} 
+                                className="flex items-center gap-2 cursor-pointer select-none"
+                              >
+                                <span className="text-slate-400 hover:text-indigo-600 transition-colors">
+                                  {isExpanded ? <ChevronDown size={16} strokeWidth={3} /> : <ChevronRight size={16} strokeWidth={3} />}
+                                </span>
+                                <div className="flex flex-col items-start gap-0.5">
+                                  <span className="text-sm font-bold text-slate-800">{name}</span>
+                                  <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">{variants.length} variantes</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="text-sm text-slate-800">{main.category || 'Otros'}</td>
+                            <td className="text-sm text-slate-800">{main.proveedor?.name || 'Huérfano'}</td>
+                            <td className="text-right text-sm text-slate-800">-</td>
+                            <td className="text-right text-sm text-slate-850 font-mono text-xs">{displayCosto}</td>
+                            <td className="text-right text-sm text-slate-850 font-mono text-xs">{displayVenta}</td>
+                            <td className="text-center">
+                              {hasPermission('catalogo_crear') && (
+                                <button 
+                                  onClick={() => handleCloneVariant(main)} 
+                                  className="btn-premium-icon text-indigo-600 dark:text-indigo-400"
+                                  title="Agregar Variante"
+                                >
+                                  <Copy size={15} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+
+                          {isExpanded && variants.map(p => (
+                            <tr key={p.id} className="bg-slate-100/20 dark:bg-slate-900/10 border-l border-slate-200">
+                              <td className="pl-8">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-slate-300 dark:text-slate-700 font-mono">└─</span>
+                                  <div className="flex flex-col items-start">
+                                    <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">SKU: {p.sku}</span>
+                                    {p.attributes && Object.keys(p.attributes).length > 0 ? (
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        {Object.entries(p.attributes).map(([key, val]) => val ? (
+                                          <span key={key} className="text-[9px] text-slate-500 font-bold border border-slate-200/80 px-1.5 py-0.5 rounded uppercase tracking-wider bg-white dark:bg-slate-850 shadow-sm">
+                                            {key}: {val}
+                                          </span>
+                                        ) : null)}
+                                      </div>
+                                    ) : p.description ? (
+                                      <span className="text-xs text-slate-400 font-medium">Var: {p.description}</span>
+                                    ) : <span className="text-xs text-slate-400 italic font-medium">Variante única</span>}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="text-xs text-slate-500">{p.category || 'Otros'}</td>
+                              <td className="text-xs text-slate-500">{p.proveedor?.name || 'Huérfano'}</td>
+                              <td className="text-right text-xs text-slate-500">
+                                {(() => {
+                                  const c = Number(p.precioCosto) || 0;
+                                  const v = Number(p.precioVenta) || 0;
+                                  const profit = v - c;
+                                  const pct = v > 0 ? (profit / v) * 100 : 0;
+                                  return `${pct.toFixed(0)}%`;
+                                })()}
+                              </td>
+                              <td className="text-right text-xs text-slate-600 font-mono font-semibold">Bs {Number(p.precioCosto).toFixed(2)}</td>
+                              <td className="text-right text-xs text-slate-800 font-mono font-bold">Bs {Number(p.precioVenta).toFixed(2)}</td>
+                              <td className="text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  {hasPermission('catalogo_editar') && (
+                                    <button 
+                                      onClick={() => handleEdit(p)} 
+                                      className="btn-premium-icon"
+                                      title="Editar"
+                                    >
+                                      <Edit2 size={15} />
+                                    </button>
+                                  )}
+                                  {hasPermission('catalogo_eliminar') && (
+                                    <button 
+                                      onClick={() => handleDelete(p.id)} 
+                                      className="btn-premium-icon btn-premium-icon-danger"
+                                      title="Eliminar"
+                                    >
+                                      <Trash2 size={15} />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      );
+                    }
+                  });
                 })()}
               </tbody>
             </table>
