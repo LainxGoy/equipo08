@@ -349,14 +349,17 @@ export default function StockPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredStock.length === 0 ? (
-                  <tr>
-                    <td colSpan={hasPermission('inventario_crear') ? 7 : 6} className="text-center py-12 text-slate-400 font-medium">
-                      No hay productos registrados en el inventario.
-                    </td>
-                  </tr>
-                ) : (
-                 {(() => {
+                {(() => {
+                  if (filteredStock.length === 0) {
+                    return (
+                      <tr>
+                        <td colSpan={hasPermission('inventario_crear') ? 7 : 6} className="text-center py-12 text-slate-400 font-medium">
+                          No hay productos registrados en el inventario.
+                        </td>
+                      </tr>
+                    );
+                  }
+
                   const groups = {};
                   filteredStock.forEach(s => {
                     const key = `${s.producto?.name}_${s.sucursal_id}`;
@@ -365,14 +368,6 @@ export default function StockPage() {
                     }
                     groups[key].push(s);
                   });
-
-                  if (Object.keys(groups).length === 0) return (
-                    <tr>
-                      <td colSpan={7} className="text-center py-12 text-slate-400 font-medium">
-                        No hay productos registrados en el inventario.
-                      </td>
-                    </tr>
-                  );
 
                   return Object.keys(groups).map(key => {
                     const variants = groups[key];
@@ -488,7 +483,6 @@ export default function StockPage() {
                     }
                   });
                 })()}
-                )}
               </tbody>
             </table>
           </div>
