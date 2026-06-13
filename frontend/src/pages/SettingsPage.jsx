@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api';
+import api, { getBackendUrl } from '../api';
 import { Settings, Store, Phone, Image as ImageIcon, Save, Loader2 } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 
@@ -12,9 +12,7 @@ export default function SettingsPage() {
   const toast = useToast();
 
   const getImageUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:3000${url}`;
+    return getBackendUrl(url);
   };
 
   const compressImage = (file) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api';
+import api, { getBackendUrl } from '../api';
 import { useToast } from '../components/ToastContext';
 import {
   Minus, Plus, Trash2, Bell, Receipt, Calculator, Store, LayoutGrid, Sun, Moon, Tag
@@ -129,7 +129,7 @@ export default function PosPage() {
         description: s.producto?.sku || 'Item',
         price: Number(s.producto?.precioVenta || 0),
         image: s.producto?.imagen_url 
-          ? (s.producto.imagen_url.startsWith('http') ? s.producto.imagen_url : `http://localhost:3000${s.producto.imagen_url}`) 
+          ? getBackendUrl(s.producto.imagen_url) 
           : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
         available: s.cantidadTotal > 0
       };

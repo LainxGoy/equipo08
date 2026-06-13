@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../api';
+import api, { getBackendUrl } from '../api';
 import { Search, Loader2, PackageSearch, Tag, Info, ArrowLeft, Store, X, ShoppingCart, Plus, Minus, Send, Sun, Moon, SlidersHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,9 +17,7 @@ export default function PublicCatalogPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const getImageUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:3000${url}`;
+    return getBackendUrl(url);
   };
 
   const [cart, setCart] = useState([]);
@@ -181,7 +179,7 @@ export default function PublicCatalogPage() {
       <div className="w-full h-48 sm:h-64 md:h-80 overflow-hidden relative bg-slate-100 dark:bg-slate-800 border-b border-[var(--border)]">
         {tienda.bannerUrl ? (
           <img 
-            src={tienda.bannerUrl.startsWith('http') ? tienda.bannerUrl : `http://localhost:3000${tienda.bannerUrl}`} 
+            src={getBackendUrl(tienda.bannerUrl)} 
             alt="Portada de la Tienda" 
             className="w-full h-full object-cover" 
           />
@@ -214,7 +212,7 @@ export default function PublicCatalogPage() {
         <div className="relative">
           {tienda.logoUrl ? (
             <img 
-              src={tienda.logoUrl.startsWith('http') ? tienda.logoUrl : `http://localhost:3000${tienda.logoUrl}`} 
+              src={getBackendUrl(tienda.logoUrl)} 
               alt={tienda.name} 
               className="h-32 w-32 sm:h-36 sm:w-36 rounded-full object-cover border-4 border-white dark:border-slate-900 shadow-xl bg-white dark:bg-slate-900" 
             />

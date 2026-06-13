@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import api from './api';
+import api, { getBackendUrl } from './api';
 import ProvidersPage from './pages/ProvidersPage';
 import SourcingPage from './pages/SourcingPage';
 import StockPage from './pages/StockPage';
@@ -132,7 +132,7 @@ function Sidebar({ setAuthToken, permissions, isOpen, setIsOpen }) {
           {/* User chip */}
           <div className={`flex items-center gap-3 ${isOpen ? 'px-4 py-3' : 'justify-center py-3 px-0'} rounded-2xl bg-black/10 border border-white/10 backdrop-blur-md shadow-inner`}>
             {logoUrl ? (
-              <img src={logoUrl.startsWith('http') ? logoUrl : `http://localhost:3000${logoUrl}`} alt="Logo" className="w-10 h-10 rounded-xl object-cover bg-white flex-shrink-0" />
+              <img src={getBackendUrl(logoUrl)} alt="Logo" className="w-10 h-10 rounded-xl object-cover bg-white flex-shrink-0" />
             ) : (
               <div className="w-10 h-10 rounded-xl text-[13px] bg-slate-100 text-slate-900 font-black flex items-center justify-center flex-shrink-0">
                 {initials}

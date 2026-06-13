@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api';
+import api, { getBackendUrl } from '../api';
 import { PackageSearch, Plus, X, Loader2, Edit2, Trash2, AlertTriangle, Tag, Search, Copy } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
@@ -31,9 +31,7 @@ export default function ProductsPage() {
   const [uploading, setUploading] = useState(false);
 
   const getImageUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:3000${url}`;
+    return getBackendUrl(url);
   };
 
   const compressImage = (file) => {
