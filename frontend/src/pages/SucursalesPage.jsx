@@ -326,7 +326,7 @@ export default function SucursalesPage() {
                 <tr>
                   <th style={{ width: '25%' }}>Sucursal / Almacén</th>
                   <th style={{ width: '30%' }}>Dirección</th>
-                  <th style={{ width: '25%' }}>Contacto / Horarios</th>
+                  <th style={{ width: '25%' }}>Teléfono</th>
                   <th className="text-center" style={{ width: '10%' }}>Estado</th>
                   {hasPermission('sucursales_editar') && <th className="text-center" style={{ width: '10%' }}>Acciones</th>}
                 </tr>
@@ -351,31 +351,22 @@ export default function SucursalesPage() {
                         <div className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">{tenantName}</div>
                       </td>
                       <td className="text-sm text-slate-800">{s.address || '---'}</td>
-                      <td>
-                        <div className="flex flex-col gap-1.5">
-                          {s.phone && (
-                            <div className="flex items-center gap-1.5 text-sm text-slate-800 font-medium">
-                              <Phone size={14} className="text-slate-400 shrink-0" />
-                              <span>{s.phone}</span>
-                            </div>
-                          )}
-                          {s.horarios && (
-                            <button
-                              onClick={() => setViewingHorarios(s)}
-                              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 px-2 py-1 rounded-md transition-colors w-max"
-                            >
-                              <Clock size={13} />
-                              <span>Ver horarios</span>
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                      <td className="text-sm text-slate-800 font-medium">{s.phone || '---'}</td>
                       <td className="text-center text-sm text-slate-800">
                         {s.isActive ? 'Activa' : 'Inactiva'}
                       </td>
                       {hasPermission('sucursales_editar') && (
                         <td className="text-center">
                           <div className="flex items-center justify-center gap-1.5">
+                            {s.horarios && (
+                              <button 
+                                onClick={() => setViewingHorarios(s)} 
+                                className="btn-premium-icon"
+                                title="Ver Horarios"
+                              >
+                                <Clock size={12} />
+                              </button>
+                            )}
                             <button 
                               onClick={() => handleEdit(s)} 
                               className="btn-premium-icon"
