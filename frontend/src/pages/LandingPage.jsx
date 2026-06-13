@@ -467,14 +467,66 @@ const styles = `
   .lp-tool-link { color: #0d1b2a !important; }
   .lp-footer-copy { font-size: 13px; color: #777; }
 
+  /* ── FEATURE ROWS ───────────────────────────────────────── */
+  .lp-feat-row {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 72px 32px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .lp-feat-row.reverse {
+    grid-template-columns: 1fr 1.5fr;
+  }
+  .lp-feat-img-el {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+    display: block;
+  }
+
   /* ── RESPONSIVE ─────────────────────────────────────────── */
   @media (max-width: 800px) {
     .lp-overheader { display: none; }
     .lp-nav-links { display: none; }
-    .lp-hero-inner { grid-template-columns: 1fr; }
-    .lp-hero-img { display: none; }
-    .lp-hero h1 { font-size: 28px; }
-    .lp-empowering-inner { grid-template-columns: 1fr; }
+    .lp-hero-inner {
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      padding: 40px 20px 0;
+      gap: 20px;
+    }
+    .lp-hero-text {
+      padding-bottom: 20px;
+    }
+    .lp-hero h1 {
+      font-size: 28px;
+    }
+    .lp-hero-desc {
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 14px;
+    }
+    .lp-hero-actions {
+      justify-content: center;
+    }
+    .lp-hero-img {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .lp-hero-img img {
+      max-height: 240px;
+      width: auto;
+    }
+    .lp-empowering-inner {
+      padding: 40px 20px;
+    }
+    .lp-empowering h2 {
+      font-size: 22px;
+    }
     .lp-emp-imgs { display: none; }
     .lp-tool-content { grid-template-columns: 1fr; }
     .lp-tool-img { display: none; }
@@ -482,6 +534,40 @@ const styles = `
     .lp-stats-inner { gap: 32px; }
     .lp-stat-sep { display: none; }
     .lp-footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+
+    /* Stack sections: text always on top, image on bottom */
+    .lp-feat-row {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 24px;
+      padding: 48px 20px;
+    }
+    .lp-feat-row.reverse {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 48px 20px;
+    }
+    .lp-feat-row h3 {
+      font-size: 22px;
+      text-align: center;
+    }
+    .lp-feat-row p {
+      text-align: center;
+    }
+    .lp-tool-list {
+      align-items: flex-start;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .lp-nav-inner { padding: 0 16px; }
+    .lp-nav-actions { gap: 8px; }
+    .lp-nav-link { font-size: 13px; }
+    .lp-btn-orange { padding: 8px 14px; font-size: 12px; }
+    .lp-logo { font-size: 18px; }
   }
 `;
 
@@ -720,8 +806,8 @@ export default function LandingPage() {
         <section style={{ background: '#fff', borderBottom: '1px solid #e0e0e0' }} id="herramientas">
 
           {/* 1 POS imagen izq texto der */}
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 32px', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 80, alignItems: 'center' }}>
-            <img src="/feat-pos.png" alt="Punto de Venta BolClick" style={{ width: '100%', borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} />
+          <div className="lp-feat-row">
+            <img src="/feat-pos.png" alt="Punto de Venta BolClick" className="lp-feat-img-el" />
             <div className="lp-tool-text">
               <h3>Punto de Venta</h3>
               <p>Registra ventas desde cualquier dispositivo — computadora, tablet o celular Android — con total facilidad.</p>
@@ -736,7 +822,7 @@ export default function LandingPage() {
 
           {/* 2 INVENTARIO texto izq imagen der */}
           <div style={{ background: '#f9f9f9', borderTop: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 32px', display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 80, alignItems: 'center' }}>
+            <div className="lp-feat-row reverse">
               <div className="lp-tool-text">
                 <h3>Gestión de Inventario</h3>
                 <p>Nunca te quedes sin existencias. Seguimiento en tiempo real de cada producto en cada sucursal.</p>
@@ -747,13 +833,13 @@ export default function LandingPage() {
                   <li>Historial completo de movimientos</li>
                 </ul>
               </div>
-              <img src="/feat-inventory.png" alt="Inventario BolClick" style={{ width: '100%', borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} />
+              <img src="/feat-inventory.png" alt="Inventario BolClick" className="lp-feat-img-el" />
             </div>
           </div>
 
           {/* 3 ANÁLISIS imagen izq texto der */}
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 32px', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 80, alignItems: 'center' }}>
-            <img src="/feat-analytics.png" alt="Análisis de Ventas BolClick" style={{ width: '100%', borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} />
+          <div className="lp-feat-row">
+            <img src="/feat-analytics.png" alt="Análisis de Ventas BolClick" className="lp-feat-img-el" />
             <div className="lp-tool-text">
               <h3>Análisis de Ventas</h3>
               <p>Toma decisiones basadas en datos reales. Accede a tus reportes desde cualquier dispositivo.</p>
@@ -768,7 +854,7 @@ export default function LandingPage() {
 
           {/* 4 PERSONAL texto izq imagen der */}
           <div style={{ background: '#f9f9f9', borderTop: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 32px', display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 60, alignItems: 'center' }}>
+            <div className="lp-feat-row reverse">
               <div className="lp-tool-text">
                 <h3>Gestión del Personal</h3>
                 <p>Administra tu equipo con roles diferenciados. Cada empleado accede solo a lo que necesita.</p>
@@ -779,13 +865,13 @@ export default function LandingPage() {
                   <li>Control de acceso seguro</li>
                 </ul>
               </div>
-              <img src="/feat-employees.png" alt="Personal BolClick" style={{ width: '100%', borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} />
+              <img src="/feat-employees.png" alt="Personal BolClick" className="lp-feat-img-el" />
             </div>
           </div>
 
           {/* 5 MULTISUCURSAL imagen izq texto der */}
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 32px', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 80, alignItems: 'center' }}>
-            <img src="/feat-multistore.png" alt="Sucursales BolClick" style={{ width: '100%', borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} />
+          <div className="lp-feat-row">
+            <img src="/feat-multistore.png" alt="Sucursales BolClick" className="lp-feat-img-el" />
             <div className="lp-tool-text">
               <h3>Gestiona Múltiples Sucursales</h3>
               <p>Haz crecer tu negocio de una tienda a varias, todo desde una sola cuenta.</p>
