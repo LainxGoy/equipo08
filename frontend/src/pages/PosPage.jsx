@@ -12,14 +12,28 @@ export default function PosPage() {
   const [stockInfo, setStockInfo] = useState([]);
   const [activeCategory, setActiveCategory] = useState('ALL');
   
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pos_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [itemToRemove, setItemToRemove] = useState(null);
   const [saving, setSaving] = useState(false);
   const [orderNumber, setOrderNumber] = useState('......');
   
   // Hold Orders State
   const [activeRightTab, setActiveRightTab] = useState('new');
-  const [holdOrders, setHoldOrders] = useState([]);
+  const [holdOrders, setHoldOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pos_hold_orders');
+      return saved ? JSON.parse(saved).map(o => ({ ...o, timestamp: new Date(o.timestamp) })) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Checkout Modal State
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -41,6 +55,14 @@ export default function PosPage() {
   const userSucursalName = sessionStorage.getItem('user_sucursal_name');
   const tenantName = sessionStorage.getItem('tenant_name') || 'Mi Tienda';
   const isBranchLocked = userRole !== 'OWNER' && !!userSucursalId;
+
+  useEffect(() => {
+    localStorage.setItem('pos_cart', JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem('pos_hold_orders', JSON.stringify(holdOrders));
+  }, [holdOrders]);
 
   useEffect(() => {
     fetchSucursales();
