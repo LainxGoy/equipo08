@@ -24,6 +24,8 @@ export default function SourcingPage() {
   const toast = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
 
   // Reset page to 1 when any filter changes
   useEffect(() => {
@@ -66,6 +68,8 @@ export default function SourcingPage() {
     setLoteForm({ producto_id: '', proveedor_id: '', sucursal_id: '', cantidad: 1, fechaElaboracion: '', fechaVencimiento: '' });
     setEditingId(null);
     setShowForm(false);
+    setProductSearchQuery('');
+    setShowProductDropdown(false);
   };
 
   const handleEdit = (h) => {
@@ -78,6 +82,11 @@ export default function SourcingPage() {
       fechaElaboracion: h.fechaElaboracion || '',
       fechaVencimiento: h.fechaVencimiento || ''
     });
+    const p = products.find(prod => prod.id === h.producto_id);
+    if (p) {
+      const label = `${p.name} ${p.attributes && Object.keys(p.attributes).length > 0 ? `- ${Object.values(p.attributes).join(' | ')}` : p.description ? `- ${p.description}` : ''}`;
+      setProductSearchQuery(label);
+    }
     setShowForm(true);
   };
 
@@ -211,15 +220,86 @@ export default function SourcingPage() {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group relative">
                 <label>Producto Entrante *</label>
-                <select required value={loteForm.producto_id} onChange={e => {
-                  const selectedProd = products.find(p => p.id === e.target.value);
-                  setLoteForm({...loteForm, producto_id: e.target.value, proveedor_id: selectedProd ? selectedProd.proveedor_id : ''});
-                }} disabled={editingId ? true : false}>
-                  <option value="">Seleccione artículo...</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.attributes && Object.keys(p.attributes).length > 0 ? `- ${Object.values(p.attributes).join(' | ')}` : p.description ? `- ${p.description}` : ''} </option>)}
-                </select>
+                {editingId ? (
+                  <input
+                    type="text"
+                    disabled
+                    className="bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200"
+                    value={(() => {
+                      const p = products.find(prod => prod.id === loteForm.producto_id);
+                      if (!p) return '';
+                      return `${p.name} ${p.attributes && Object.keys(p.attributes).length > 0 ? `- ${Object.values(p.attributes).join(' | ')}` : p.description ? `- ${p.description}` : ''}`;
+                    })()}
+                  />
+                ) : (
+                  <>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        placeholder="Buscar producto por nombre, talla, color o SKU..."
+                        value={productSearchQuery}
+                        onChange={e => {
+                          setProductSearchQuery(e.target.value);
+                          setShowProductDropdown(true);
+                        }}
+                        onFocus={() => setShowProductDropdown(true)}
+                        className="w-full pr-10"
+                      />
+                      {productSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductSearchQuery('');
+                            setLoteForm({ ...loteForm, producto_id: '', proveedor_id: '' });
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                    {showProductDropdown && (
+                      <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg z-50 divide-y divide-slate-100">
+                        {(() => {
+                          const query = productSearchQuery.toLowerCase().trim();
+                          const filteredProducts = products.filter(p => {
+                            const name = (p.name || '').toLowerCase();
+                            const sku = (p.sku || '').toLowerCase();
+                            const desc = (p.description || '').toLowerCase();
+                            const attrs = p.attributes ? Object.values(p.attributes).map(v => String(v).toLowerCase()).join(' ') : '';
+                            return name.includes(query) || sku.includes(query) || desc.includes(query) || attrs.includes(query);
+                          });
+
+                          if (filteredProducts.length === 0) {
+                            return <div className="p-3 text-xs text-slate-400 text-center">No se encontraron productos</div>;
+                          }
+
+                          return filteredProducts.map(p => {
+                            const label = `${p.name} ${p.attributes && Object.keys(p.attributes).length > 0 ? `- ${Object.values(p.attributes).join(' | ')}` : p.description ? `- ${p.description}` : ''}`;
+                            return (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => {
+                                  setLoteForm({ ...loteForm, producto_id: p.id, proveedor_id: p.proveedor_id || '' });
+                                  setProductSearchQuery(label);
+                                  setShowProductDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors block whitespace-nowrap overflow-hidden text-ellipsis"
+                              >
+                                {label}
+                                {p.sku && <span className="block text-[10px] text-slate-400 mt-0.5">SKU: {p.sku}</span>}
+                              </button>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               <div className="form-group">
