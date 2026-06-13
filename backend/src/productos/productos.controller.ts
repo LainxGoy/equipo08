@@ -1,13 +1,10 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { ProductosService } from './productos.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { TenantId } from '../tenant/tenant-id.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { RequirePermission } from '../auth/decorators/permissions.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-// @ts-ignore
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 
 @ApiTags('Productos')
 @Controller('productos')
@@ -16,17 +13,14 @@ export class ProductosController {
 
   @Post('upload')
   @RequirePermission('catalogo.crear')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req: any, file: any, cb: any) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-      }
-    })
-  }))
+  @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile() file: any) {
-    return { url: `/uploads/${file.filename}` };
+    if (!file) {
+      throw new BadRequestException('No se proporcionó ningún archivo');
+    }
+    const base64Data = file.buffer.toString('base64');
+    const dataUrl = `data:${file.mimetype};base64,${base64Data}`;
+    return { url: dataUrl };
   }
 
   @Post()

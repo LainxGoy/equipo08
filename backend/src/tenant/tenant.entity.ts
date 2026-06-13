@@ -43,10 +43,10 @@ export class Tenant {
   @Column({ nullable: true })
   razonSocial: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   logoUrl: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   bannerUrl: string;
 
   @Column({ nullable: true })
