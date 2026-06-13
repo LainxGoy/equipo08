@@ -14,6 +14,7 @@ export default function SourcingPage() {
   const [editingId, setEditingId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [filterProducto, setFilterProducto] = useState('ALL');
+  const [filterProveedor, setFilterProveedor] = useState('ALL');
   const [filterSucursal, setFilterSucursal] = useState('ALL');
   const [filterDateStart, setFilterDateStart] = useState('');
   const [filterDateEnd, setFilterDateEnd] = useState('');
@@ -44,7 +45,7 @@ export default function SourcingPage() {
   // Reset page to 1 when any filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterProducto, filterSucursal, filterDateStart, filterDateEnd, filterExpiryStart, filterExpiryEnd]);
+  }, [filterProducto, filterProveedor, filterSucursal, filterDateStart, filterDateEnd, filterExpiryStart, filterExpiryEnd]);
 
   const userRole = sessionStorage.getItem('user_role');
   const userPermissions = JSON.parse(sessionStorage.getItem('permissions') || '{}');
@@ -159,6 +160,7 @@ export default function SourcingPage() {
   // Compute filtered items for pagination calculation
   const filteredHistorial = historial.filter(h => {
     if (filterProducto !== 'ALL' && h.producto_id !== filterProducto) return false;
+    if (filterProveedor !== 'ALL' && h.proveedor_id !== filterProveedor) return false;
     if (filterSucursal !== 'ALL' && h.sucursal_id !== filterSucursal) return false;
     
     if (filterDateStart) {
@@ -378,6 +380,17 @@ export default function SourcingPage() {
             >
               <option value="ALL">-- Todos los productos --</option>
               {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.attributes && Object.keys(p.attributes).length > 0 ? `- ${Object.values(p.attributes).join(' | ')}` : p.description ? `- ${p.description}` : ''} </option>)}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filtrar Proveedor</label>
+            <select
+              value={filterProveedor}
+              onChange={e => setFilterProveedor(e.target.value)}
+              className="w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+            >
+              <option value="ALL">-- Todos los proveedores --</option>
+              {providers.map(prov => <option key={prov.id} value={prov.id}>{prov.name}</option>)}
             </select>
           </div>
           <div className="flex-1 min-w-[150px]">
