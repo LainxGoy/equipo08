@@ -148,7 +148,9 @@ function Sidebar({ setAuthToken, permissions, isOpen, setIsOpen }) {
         </div>
         <nav className={`flex flex-col gap-2 mt-2 w-full ${!isOpen ? 'items-center' : ''}`}>
 
-          <NavItem to="/" icon={LayoutDashboard} label="Resumen" active={p === '/'} isOpen={isOpen} />
+          {userRole !== 'SUPER_ADMIN' && (
+            <NavItem to="/" icon={LayoutDashboard} label="Resumen" active={p === '/'} isOpen={isOpen} />
+          )}
 
           {hasPerm('catalogo.ver') && (
             <NavItem to="/providers"   icon={Users}      label="Proveedores"        active={p === '/providers'} isOpen={isOpen} />
@@ -206,16 +208,18 @@ function Sidebar({ setAuthToken, permissions, isOpen, setIsOpen }) {
 
       {/* ── Tienda Online & Logout ── */}
       <div className={`p-5 w-full border-t border-white/10 flex flex-col gap-3 items-center`}>
-        <a 
-          href={`/tienda/${tenantDomain}`}
-          target="_blank" 
-          rel="noopener noreferrer"
-          className={`flex items-center justify-center gap-3 h-12 rounded-xl text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 font-bold transition-all duration-200 ${isOpen ? 'w-full px-4' : 'w-12 px-0'}`}
-          title={!isOpen ? 'Ir a Tienda Online' : undefined}
-        >
-          <Store size={20} strokeWidth={2.5} />
-          {isOpen && <span>Tienda Online</span>}
-        </a>
+        {userRole !== 'SUPER_ADMIN' && (
+          <a 
+            href={`/tienda/${tenantDomain}`}
+            target="_blank" 
+            rel="noopener noreferrer"
+            className={`flex items-center justify-center gap-3 h-12 rounded-xl text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 font-bold transition-all duration-200 ${isOpen ? 'w-full px-4' : 'w-12 px-0'}`}
+            title={!isOpen ? 'Ir a Tienda Online' : undefined}
+          >
+            <Store size={20} strokeWidth={2.5} />
+            {isOpen && <span>Tienda Online</span>}
+          </a>
+        )}
         <button
           onClick={handleLogout}
           className={`bg-transparent flex items-center justify-center gap-3 h-12 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-md border border-transparent font-bold transition-all duration-200 ${isOpen ? 'w-full px-4' : 'w-12 px-0'}`}
@@ -236,6 +240,7 @@ function App() {
   const [permissions, setPermissions] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const userRole = sessionStorage.getItem('user_role') || 'VENDEDOR';
 
   useEffect(() => {
     const handleAuthError = (e) => {
@@ -338,7 +343,7 @@ function App() {
                     <div className={`main-content transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] relative`}>
                       <AnimatePresence mode="wait">
                         <Routes location={location} key={location.pathname}>
-                          <Route path="/"              element={<PageTransition><DashboardPage     key={authToken} /></PageTransition>} />
+                          <Route path="/"              element={<PageTransition>{userRole === 'SUPER_ADMIN' ? <Navigate to="/admin-console" replace /> : <DashboardPage key={authToken} />}</PageTransition>} />
                           <Route path="/providers"     element={<PageTransition><ProvidersPage     key={authToken} /></PageTransition>} />
                           <Route path="/sucursales"    element={<PageTransition><SucursalesPage    key={authToken} /></PageTransition>} />
                           <Route path="/products"      element={<PageTransition><ProductsPage      key={authToken} /></PageTransition>} />
