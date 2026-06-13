@@ -1,14 +1,18 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, ILike, IsNull } from 'typeorm';
+import { Repository, Not, ILike, IsNull, DataSource } from 'typeorm';
 import { Producto } from './producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
+import { LoteIngreso } from '../sourcing/lote-ingreso.entity';
+import { Stock } from '../stock/stock.entity';
+import { AjusteInventario } from '../ajustes/ajuste.entity';
 
 @Injectable()
 export class ProductosService {
   constructor(
     @InjectRepository(Producto)
     private readonly prodRep: Repository<Producto>,
+    private readonly dataSource: DataSource,
   ) {}
 
   private async validateProducto(tenant_id: string, dto: Partial<CreateProductoDto>, excludeId?: string) {
@@ -90,13 +94,37 @@ export class ProductosService {
     const prod = await this.prodRep.findOne({ where: { id, tenant_id } });
     if (!prod) throw new NotFoundException('Producto no encontrado');
 
-    try {
-      await this.prodRep.remove(prod);
-    } catch (e) {
-      if (e.code === '23503') {
-        throw new BadRequestException('No se puede eliminar el producto porque tiene stock o historial de ingresos asociado. Esto corrompería la integridad contable.');
-      }
-      throw e;
+    // Check if there are any active batch history (lotes)
+    const lotesCount = await this.dataSource.getRepository(LoteIngreso).count({
+      where: { producto_id: id }
+    });
+    if (lotesCount > 0) {
+      throw new BadRequestException('No se puede eliminar el producto porque tiene un historial de lotes de ingreso registrado.');
     }
+
+    // Check if there are any inventory adjustments
+    const ajustesCount = await this.dataSource.getRepository(AjusteInventario).count({
+      where: { producto_id: id }
+    });
+    if (ajustesCount > 0) {
+      throw new BadRequestException('No se puede eliminar el producto porque tiene un historial de ajustes de inventario registrado.');
+    }
+
+    // Check if there is active stock in any branch
+    const activeStocks = await this.dataSource.getRepository(Stock).find({
+      where: { producto_id: id }
+    });
+    const totalStock = activeStocks.reduce((acc, s) => acc + (s.cantidadTotal || 0), 0);
+    if (totalStock > 0) {
+      throw new BadRequestException(`No se puede eliminar el producto porque cuenta con stock activo (${totalStock} unidades en total) en tus sucursales.`);
+    }
+
+    // If we passed all checks, we can safely delete the empty stock records
+    if (activeStocks.length > 0) {
+      await this.dataSource.getRepository(Stock).remove(activeStocks);
+    }
+
+    // Now delete the product
+    await this.prodRep.remove(prod);
   }
 }
