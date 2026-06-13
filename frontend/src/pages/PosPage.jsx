@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api, { getBackendUrl } from '../api';
 import { useToast } from '../components/ToastContext';
 import {
-  Minus, Plus, Trash2, Bell, Receipt, Calculator, Store, LayoutGrid, Sun, Moon, Tag, ArrowLeft, ShoppingCart
+  Minus, Plus, Trash2, Bell, Receipt, Calculator, Store, LayoutGrid, Sun, Moon, Tag, ArrowLeft, ShoppingCart, Search, Loader2
 } from 'lucide-react';
 
 export default function PosPage() {
@@ -41,6 +41,7 @@ export default function PosPage() {
   const [clienteDocumento, setClienteDocumento] = useState('');
   const [metodoPago, setMetodoPago] = useState('Efectivo');
   const [montoRecibido, setMontoRecibido] = useState('');
+  const [searchingClient, setSearchingClient] = useState(false);
   
   // Variant Selection State
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -373,17 +374,25 @@ export default function PosPage() {
     }
   };
 
-  const handleDocumentChange = async (doc) => {
-    setClienteDocumento(doc);
-    if (doc.trim().length >= 5) {
-      try {
-        const res = await api.get(`/ventas/cliente/${doc}`);
-        if (res.data && res.data.clienteNombre) {
-          setClienteNombre(res.data.clienteNombre);
-        }
-      } catch (err) {
-        // Ignore silently
+  const searchClient = async (doc) => {
+    const documentToSearch = doc || clienteDocumento;
+    if (!documentToSearch || documentToSearch.trim().length < 5) {
+      toast.error('Ingresa al menos 5 dígitos para buscar el cliente.');
+      return;
+    }
+    setSearchingClient(true);
+    try {
+      const res = await api.get(`/ventas/cliente/${documentToSearch.trim()}`);
+      if (res.data && res.data.clienteNombre) {
+        setClienteNombre(res.data.clienteNombre);
+        toast.success(`Cliente encontrado y autocompletado: ${res.data.clienteNombre}`);
+      } else {
+        toast.info('NIT/CI no registrado anteriormente.');
       }
+    } catch (err) {
+      toast.info('NIT/CI no registrado anteriormente.');
+    } finally {
+      setSearchingClient(false);
     }
   };
 
@@ -664,22 +673,34 @@ export default function PosPage() {
             </div>
             <div className="p-6 flex flex-col gap-5 overflow-y-auto max-h-[70vh] custom-scrollbar">
               <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">NIT / CI (Opcional)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={clienteDocumento} 
+                    onChange={e => setClienteDocumento(e.target.value)} 
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchClient(); } }}
+                    placeholder="Ej. 1234567" 
+                    className="flex-1 py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-white placeholder:text-slate-400"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => searchClient()} 
+                    disabled={searchingClient}
+                    className="px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {searchingClient ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                    Buscar
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cliente</label>
                 <input 
                   type="text" 
                   value={clienteNombre} 
                   onChange={e => setClienteNombre(e.target.value)} 
                   className="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-white"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">NIT / CI (Opcional)</label>
-                <input 
-                  type="text" 
-                  value={clienteDocumento} 
-                  onChange={e => handleDocumentChange(e.target.value)} 
-                  placeholder="Ej. 1234567" 
-                  className="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-white placeholder:text-slate-400"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
