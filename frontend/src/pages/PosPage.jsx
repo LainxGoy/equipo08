@@ -405,18 +405,18 @@ export default function PosPage() {
     <div className="h-screen w-full flex bg-slate-50 dark:bg-slate-950 overflow-hidden font-sans">
       
       {/* LEFT SIDEBAR - Categories */}
-      <div className="w-[110px] bg-white border-r border-slate-200 flex flex-col items-center py-6 shadow-sm z-10 flex-shrink-0 overflow-y-auto custom-scrollbar">
+      <div className="w-[110px] bg-[#0f172a] border-r border-slate-800 flex flex-col items-center py-6 shadow-sm z-10 flex-shrink-0 overflow-y-auto custom-scrollbar">
         <Link to="/" className="flex flex-col items-center mb-6 hover:opacity-80 transition-opacity" title="Volver al panel principal">
-          <div className="w-10 h-10 bg-slate-900 dark:bg-indigo-500 rounded-full mb-2 flex items-center justify-center text-white shadow-md">
+          <div className="w-10 h-10 bg-slate-800 text-white rounded-full mb-2 flex items-center justify-center shadow-md">
             <ArrowLeft size={20} />
           </div>
-          <span className="text-[11px] font-black tracking-tight text-slate-800 text-center px-1 truncate w-full">{tenantName}</span>
+          <span className="text-[11px] font-black tracking-tight text-slate-200 text-center px-1 truncate w-full">{tenantName}</span>
         </Link>
 
         <div 
           onClick={toggleTheme}
           role="button"
-          className="mb-6 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+          className="mb-6 p-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors cursor-pointer"
           title="Cambiar Tema"
         >
           {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
@@ -433,8 +433,8 @@ export default function PosPage() {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`flex flex-col items-center justify-center w-full py-3 rounded-2xl transition-all cursor-pointer ${
                   isActive 
-                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md' 
-                    : 'bg-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300'
+                    ? 'bg-white text-slate-900 shadow-md' 
+                    : 'bg-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                 }`}
               >
                 <Icon size={24} strokeWidth={isActive ? 2.5 : 2} className="mb-2" />
@@ -448,12 +448,15 @@ export default function PosPage() {
       {/* CENTER GRID - Products */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50 dark:bg-slate-950">
         {/* Top Header / Branch Selector */}
-        <div className="h-[70px] flex items-center px-8 flex-shrink-0">
+        <div className="h-[70px] bg-[#0f172a] border-b border-slate-800 flex items-center justify-between px-8 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="text-white font-extrabold text-lg tracking-tight">Terminal POS</span>
+          </div>
           {!isBranchLocked && sucursales.length > 1 && (
             <select
               value={selectedBranch}
               onChange={e => setSelectedBranch(e.target.value)}
-              className="bg-white border border-slate-200 text-slate-700 text-sm font-bold py-2 px-4 rounded-xl shadow-sm outline-none focus:border-blue-500"
+              className="bg-slate-800 border border-slate-700 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-sm outline-none focus:border-slate-500"
             >
               <option value="" disabled>Seleccionar Sucursal</option>
               {sucursales.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
