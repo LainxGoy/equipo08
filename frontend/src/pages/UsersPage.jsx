@@ -122,7 +122,7 @@ export default function UsersPage() {
         <div className="flex gap-2">
           <button
             className={`py-2 px-5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm ${
-              showFilters ? 'bg-indigo-500 text-white shadow-indigo-500/20' : 'bg-white/20 hover:bg-white/30 text-white'
+              showFilters ? 'bg-white text-slate-800 border border-slate-300' : 'bg-white/20 hover:bg-white/30 text-white'
             }`}
             onClick={() => setShowFilters(!showFilters)}
           >

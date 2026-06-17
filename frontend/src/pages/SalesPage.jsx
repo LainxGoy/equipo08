@@ -100,7 +100,7 @@ export default function SalesPage() {
         <button
           onClick={() => setShowHistoryFilters(!showHistoryFilters)}
           className={`py-2 px-4 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm border ${
-            showHistoryFilters ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            showHistoryFilters ? 'bg-white text-slate-900 border-slate-300' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
           }`}
         >
           <Filter size={16} />
