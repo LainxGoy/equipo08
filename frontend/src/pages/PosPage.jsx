@@ -692,7 +692,7 @@ export default function PosPage() {
                     type="button" 
                     onClick={() => searchClient()} 
                     disabled={searchingClient}
-                    className="px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     {searchingClient ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
                     Buscar

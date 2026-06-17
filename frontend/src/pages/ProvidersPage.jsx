@@ -159,7 +159,7 @@ export default function ProvidersPage() {
                       type="button" 
                       onClick={handleNitSearch} 
                       disabled={searchingNit}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5"
+                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5"
                     >
                       {searchingNit ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />} 
                       Buscar

@@ -363,7 +363,7 @@ export default function ProductsPage() {
                   )}
                   <label 
                     htmlFor="file-upload" 
-                    className={`cursor-pointer py-2 px-4 border border-transparent text-xs font-bold text-white rounded-lg flex items-center gap-1.5 transition-colors bg-indigo-600 ${uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700'}`}
+                    className={`cursor-pointer py-2 px-4 border border-transparent text-xs font-bold text-white rounded-lg flex items-center gap-1.5 transition-colors bg-slate-900 ${uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800'}`}
                   >
                     {uploading ? 'Procesando...' : 'Subir desde Equipo'}
                   </label>
