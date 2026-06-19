@@ -10,7 +10,9 @@ export class CatalogController {
 
   @Public()
   @Get(':domain')
-  @ApiOperation({ summary: 'Obtener el catálogo público de una tienda por su dominio' })
+  @ApiOperation({
+    summary: 'Obtener el catálogo público de una tienda por su dominio',
+  })
   getCatalogByDomain(@Param('domain') domain: string) {
     return this.catalogService.getCatalogByDomain(domain);
   }

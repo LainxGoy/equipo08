@@ -32,7 +32,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
     // Limpiar y preparar base de datos para la prueba de integración
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
-    
+
     // Crear un Tenant de prueba
     const tenant = queryRunner.manager.create(Tenant, {
       name: 'Integration Shop',
@@ -43,7 +43,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
       isActive: true,
       ubicacion: 'Calle Integracion #1',
       nit: '11111111',
-      razonSocial: 'Integration Shop S.A.'
+      razonSocial: 'Integration Shop S.A.',
     });
     const savedTenant = await queryRunner.manager.save(Tenant, tenant);
     tenantId = savedTenant.id;
@@ -54,7 +54,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
       name: 'Central Integration',
       address: 'Central address',
       phone: '77777777',
-      isActive: true
+      isActive: true,
     });
     const savedSucursal = await queryRunner.manager.save(Sucursal, sucursal);
     sucursalId = savedSucursal.id;
@@ -68,7 +68,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
       precioVenta: 100,
       category: 'Otros',
       stockMinimo: 5,
-      proveedor_id: null
+      proveedor_id: null,
     });
     const savedProducto = await queryRunner.manager.save(Producto, producto);
     productoId = savedProducto.id;
@@ -79,7 +79,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
       sucursal_id: sucursalId,
       producto_id: productoId,
       cantidadTotal: 10,
-      valorAdquisicion: 500
+      valorAdquisicion: 500,
     });
     await queryRunner.manager.save(Stock, stock);
 
@@ -92,7 +92,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
       email: 'integration-admin@shop.com',
       password: hashedPassword,
       role: 'OWNER',
-      isActive: true
+      isActive: true,
     });
     await queryRunner.manager.save(User, user);
     await queryRunner.release();
@@ -101,7 +101,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: 'integration-admin@shop.com', password: 'password123' });
-    
+
     authToken = loginRes.body.access_token;
   });
 
@@ -109,11 +109,21 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
     // Limpieza
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
-    await queryRunner.query('DELETE FROM stock WHERE tenant_id = $1', [tenantId]);
-    await queryRunner.query('DELETE FROM ventas WHERE tenant_id = $1', [tenantId]);
-    await queryRunner.query('DELETE FROM productos WHERE tenant_id = $1', [tenantId]);
-    await queryRunner.query('DELETE FROM sucursales WHERE tenant_id = $1', [tenantId]);
-    await queryRunner.query('DELETE FROM users WHERE tenant_id = $1', [tenantId]);
+    await queryRunner.query('DELETE FROM stock WHERE tenant_id = $1', [
+      tenantId,
+    ]);
+    await queryRunner.query('DELETE FROM ventas WHERE tenant_id = $1', [
+      tenantId,
+    ]);
+    await queryRunner.query('DELETE FROM productos WHERE tenant_id = $1', [
+      tenantId,
+    ]);
+    await queryRunner.query('DELETE FROM sucursales WHERE tenant_id = $1', [
+      tenantId,
+    ]);
+    await queryRunner.query('DELETE FROM users WHERE tenant_id = $1', [
+      tenantId,
+    ]);
     await queryRunner.query('DELETE FROM tenants WHERE id = $1', [tenantId]);
     await queryRunner.release();
     await app.close();
@@ -124,7 +134,7 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
       const res = await request(app.getHttpServer())
         .get(`/api/ventas/siguiente-numero/${sucursalId}`)
         .set('Authorization', `Bearer ${authToken}`);
-      
+
       expect(res.status).toBe(200);
       expect(res.body.nextNumber).toBe('000001');
     });
@@ -141,8 +151,8 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
           clienteDocumento: '1234567',
           metodoPago: 'Efectivo',
           items: [
-            { producto_id: productoId, cantidad: 15 } // Disponible 10
-          ]
+            { producto_id: productoId, cantidad: 15 }, // Disponible 10
+          ],
         });
 
       expect(res.status).toBe(400);
@@ -159,8 +169,8 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
           clienteDocumento: '1234567',
           metodoPago: 'Efectivo',
           items: [
-            { producto_id: productoId, cantidad: 4 } // Disponible 10
-          ]
+            { producto_id: productoId, cantidad: 4 }, // Disponible 10
+          ],
         });
 
       expect(res.status).toBe(201);
@@ -171,7 +181,11 @@ describe('Ventas Integration Tests (Pruebas de Integración)', () => {
       const queryRunner = dataSource.createQueryRunner();
       await queryRunner.connect();
       const updatedStock = await queryRunner.manager.findOne(Stock, {
-        where: { tenant_id: tenantId, sucursal_id: sucursalId, producto_id: productoId }
+        where: {
+          tenant_id: tenantId,
+          sucursal_id: sucursalId,
+          producto_id: productoId,
+        },
       });
       expect(updatedStock.cantidadTotal).toBe(6); // 10 - 4 = 6
       await queryRunner.release();

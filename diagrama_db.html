@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagrama de Base de Datos - Mall Multi-Tenant</title>
+    <title>Diagrama de Base de Datos - BolClick Multi-Tenant</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a; /* Slate 900 */
-            color: #f8fafc; /* Slate 50 */
+            background-color: #0f172a;
+            color: #f8fafc;
             margin: 0;
             padding: 40px;
             display: flex;
@@ -17,22 +17,23 @@
             align-items: center;
         }
         h1 {
-            color: #38bdf8; /* Sky 400 */
+            color: #38bdf8;
             margin-bottom: 10px;
         }
         p {
-            color: #94a3b8; /* Slate 400 */
+            color: #94a3b8;
             margin-bottom: 40px;
-            max-width: 600px;
+            max-width: 760px;
             text-align: center;
+            line-height: 1.5;
         }
         .mermaid {
-            background-color: #1e293b; /* Slate 800 */
+            background-color: #1e293b;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px;
             overflow-x: auto;
         }
     </style>
@@ -40,113 +41,184 @@
 <body>
 
     <h1>Arquitectura de Base de Datos</h1>
-    <p>Diagrama Entidad-Relación Lógico para la plataforma Multi-Tenant. Diseñado para mostrar las relaciones operativas clave sin cruces innecesarios ("anti-fideo").</p>
+    <p>Diagrama entidad-relacion reestructurado para la plataforma multi-tenant. Las ventas usan detalle normalizado y el inventario queda trazado mediante movimientos historicos.</p>
 
     <div class="mermaid">
         erDiagram
-            %% MÓDULO CORE / ESTRUCTURA
             TENANT {
                 uuid id PK
                 varchar name
                 varchar domain
-                varchar status "PENDING | APPROVED"
+                varchar email
+                varchar status
             }
-            
+
             SUCURSAL {
                 uuid id PK
-                varchar tenant_id FK
+                uuid tenant_id FK
                 varchar name
                 varchar address
+                boolean isActive
             }
-            
+
             USER {
                 uuid id PK
-                varchar tenant_id FK
+                uuid tenant_id FK
                 uuid sucursal_id FK
                 varchar name
-                varchar role "OWNER | SUPERVISOR | VENDEDOR"
+                varchar email
+                varchar role
+            }
+
+            CLIENTE {
+                uuid id PK
+                uuid tenant_id FK
+                varchar nombre
+                varchar documento
             }
 
             ROLE_PERMISSIONS {
                 uuid id PK
-                varchar tenant_id FK
+                uuid tenant_id FK
                 varchar role
-                boolean modulo_ver
+                boolean modulo_accion
             }
 
-            %% RELACIONES CORE
-            TENANT ||--o{ SUCURSAL : "tiene"
-            TENANT ||--o{ USER : "emplea"
-            TENANT ||--o{ ROLE_PERMISSIONS : "define"
-            SUCURSAL ||--o{ USER : "asigna a"
-
-            %% MÓDULO CATÁLOGO Y SOURCING
             PROVEEDOR {
                 uuid id PK
-                varchar tenant_id FK
+                uuid tenant_id FK
                 varchar name
                 varchar contactEmail
+                varchar taxId
             }
 
             PRODUCTO {
                 uuid id PK
-                varchar tenant_id FK
+                uuid tenant_id FK
                 uuid proveedor_id FK
                 varchar sku
                 varchar name
+                varchar category
+                numeric precioCosto
                 numeric precioVenta
             }
 
-            %% RELACIONES CATÁLOGO
-            PROVEEDOR ||--o{ PRODUCTO : "provee"
-
-            %% MÓDULO INVENTARIO Y OPERACIONES
             STOCK {
                 uuid id PK
-                varchar tenant_id FK
-                uuid producto_id FK
+                uuid tenant_id FK
                 uuid sucursal_id FK
-                integer cantidadTotal
+                uuid producto_id FK
+                int cantidadTotal
+                numeric valorAdquisicion
             }
 
             LOTE_INGRESO {
                 uuid id PK
-                varchar tenant_id FK
-                uuid producto_id FK
+                uuid tenant_id FK
                 uuid sucursal_id FK
-                integer cantidad
-            }
-
-            AJUSTE_INVENTARIO {
-                uuid id PK
-                varchar tenant_id FK
                 uuid producto_id FK
-                uuid sucursal_id FK
-                uuid usuario_id FK
-                integer cantidad_sistema
-                integer cantidad_fisica
+                uuid proveedor_id FK
+                int cantidad
+                numeric costoUnitarioSnapshot
             }
 
             VENTA {
                 uuid id PK
-                varchar tenant_id FK
+                uuid tenant_id FK
                 uuid sucursal_id FK
-                varchar clienteNombre
+                uuid cliente_id FK
+                uuid vendedor_id FK
+                varchar numeroComprobante
                 numeric total
+                numeric costoTotal
+                numeric utilidadTotal
             }
 
-            %% RELACIONES OPERACIONALES
-            PRODUCTO ||--o{ STOCK : "tiene en"
-            SUCURSAL ||--o{ STOCK : "almacena"
-            
-            PRODUCTO ||--o{ LOTE_INGRESO : "ingresa"
-            PRODUCTO ||--o{ AJUSTE_INVENTARIO : "se audita"
-            
-            SUCURSAL ||--o{ VENTA : "registra"
+            VENTA_DETALLE {
+                uuid id PK
+                uuid tenant_id FK
+                uuid venta_id FK
+                uuid producto_id FK
+                int cantidad
+                numeric precioUnitarioSnapshot
+                numeric costoUnitarioSnapshot
+                numeric subtotal
+            }
+
+            AJUSTE_INVENTARIO {
+                uuid id PK
+                uuid tenant_id FK
+                uuid sucursal_id FK
+                uuid producto_id FK
+                uuid usuario_id FK
+                int cantidad_sistema
+                int cantidad_fisica
+                varchar motivo
+            }
+
+            TRANSFERENCIA_STOCK {
+                uuid id PK
+                uuid tenant_id FK
+                uuid from_sucursal_id FK
+                uuid to_sucursal_id FK
+                uuid producto_id FK
+                uuid usuario_id FK
+                int cantidad
+                numeric valorTransferido
+            }
+
+            MOVIMIENTO_INVENTARIO {
+                uuid id PK
+                uuid tenant_id FK
+                uuid sucursal_id FK
+                uuid producto_id FK
+                uuid usuario_id FK
+                varchar tipo
+                int cantidad_delta
+                numeric valor_delta
+                varchar referencia_tipo
+                uuid referencia_id
+            }
+
+            TENANT ||--o{ SUCURSAL : tiene
+            TENANT ||--o{ USER : emplea
+            TENANT ||--o{ CLIENTE : registra
+            TENANT ||--o{ ROLE_PERMISSIONS : define
+            TENANT ||--o{ PROVEEDOR : administra
+            TENANT ||--o{ PRODUCTO : cataloga
+
+            SUCURSAL ||--o{ USER : asigna
+            SUCURSAL ||--o{ STOCK : almacena
+            SUCURSAL ||--o{ LOTE_INGRESO : recibe
+            SUCURSAL ||--o{ VENTA : registra
+            SUCURSAL ||--o{ AJUSTE_INVENTARIO : audita
+            SUCURSAL ||--o{ MOVIMIENTO_INVENTARIO : afecta
+
+            PROVEEDOR ||--o{ PRODUCTO : provee
+            PROVEEDOR ||--o{ LOTE_INGRESO : abastece
+
+            PRODUCTO ||--o{ STOCK : resume
+            PRODUCTO ||--o{ LOTE_INGRESO : ingresa
+            PRODUCTO ||--o{ VENTA_DETALLE : se_vende_en
+            PRODUCTO ||--o{ AJUSTE_INVENTARIO : se_ajusta
+            PRODUCTO ||--o{ TRANSFERENCIA_STOCK : se_transfiere
+            PRODUCTO ||--o{ MOVIMIENTO_INVENTARIO : mueve
+
+            CLIENTE ||--o{ VENTA : compra
+            USER ||--o{ VENTA : vende
+            USER ||--o{ AJUSTE_INVENTARIO : registra
+            USER ||--o{ TRANSFERENCIA_STOCK : autoriza
+            USER ||--o{ MOVIMIENTO_INVENTARIO : ejecuta
+
+            VENTA ||--o{ VENTA_DETALLE : contiene
+            VENTA_DETALLE ||--o{ MOVIMIENTO_INVENTARIO : descuenta
+            LOTE_INGRESO ||--o{ MOVIMIENTO_INVENTARIO : origina
+            AJUSTE_INVENTARIO ||--o{ MOVIMIENTO_INVENTARIO : corrige
+            TRANSFERENCIA_STOCK ||--o{ MOVIMIENTO_INVENTARIO : genera
     </div>
 
     <script>
-        mermaid.initialize({ 
+        mermaid.initialize({
             startOnLoad: true,
             theme: 'dark',
             securityLevel: 'loose',

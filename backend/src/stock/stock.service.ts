@@ -1,7 +1,24 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Stock } from './stock.entity';
+import {
+  MovimientoInventario,
+  MovimientoInventarioTipo,
+} from './movimiento-inventario.entity';
+import { TransferenciaStock } from './transferencia-stock.entity';
+
+export type StockMovementContext = {
+  tipo: MovimientoInventarioTipo;
+  referencia_tipo?: string;
+  referencia_id?: string;
+  usuario_id?: string;
+  observaciones?: string;
+};
 
 @Injectable()
 export class StockService {
@@ -11,34 +28,106 @@ export class StockService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getStockRow(tenant_id: string, sucursal_id: string, producto_id: string): Promise<Stock | null> {
-    return this.stockRep.findOne({ where: { tenant_id, sucursal_id, producto_id } });
-  }
-
-  async sumStock(tenant_id: string, sucursal_id: string, producto_id: string, cantidad: number, valorAdquisicionDelta: number = 0): Promise<Stock> {
-    let stock = await this.stockRep.findOne({ where: { tenant_id, sucursal_id, producto_id } });
-    if (!stock) {
-      stock = this.stockRep.create({ tenant_id, sucursal_id, producto_id, cantidadTotal: Number(cantidad || 0), valorAdquisicion: valorAdquisicionDelta > 0 ? valorAdquisicionDelta : 0 });
-    } else {
-      stock.cantidadTotal = Number(stock.cantidadTotal || 0) + Number(cantidad || 0);
-      stock.valorAdquisicion = Number(stock.valorAdquisicion || 0) + Number(valorAdquisicionDelta || 0);
-    }
-    return this.stockRep.save(stock);
-  }
-
-  async getStockByTenant(tenant_id: string): Promise<Stock[]> {
-    return this.stockRep.find({ 
-      where: { tenant_id },
-      relations: ['producto', 'sucursal'],
-      order: {
-         sucursal_id: 'ASC'
-      }
+  async getStockRow(
+    tenant_id: string,
+    sucursal_id: string,
+    producto_id: string,
+  ): Promise<Stock | null> {
+    return this.stockRep.findOne({
+      where: { tenant_id, sucursal_id, producto_id },
     });
   }
 
-  async transferStock(tenant_id: string, from_sucursal_id: string, to_sucursal_id: string, producto_id: string, cantidad: number): Promise<void> {
+  async sumStock(
+    tenant_id: string,
+    sucursal_id: string,
+    producto_id: string,
+    cantidad: number,
+    valorAdquisicionDelta: number = 0,
+    movement?: StockMovementContext,
+  ): Promise<Stock> {
+    return this.applyStockDelta(
+      this.stockRep.manager,
+      tenant_id,
+      sucursal_id,
+      producto_id,
+      cantidad,
+      valorAdquisicionDelta,
+      movement,
+    );
+  }
+
+  async applyStockDelta(
+    manager: EntityManager,
+    tenant_id: string,
+    sucursal_id: string,
+    producto_id: string,
+    cantidad: number,
+    valorAdquisicionDelta: number = 0,
+    movement?: StockMovementContext,
+  ): Promise<Stock> {
+    const stockRep = manager.getRepository(Stock);
+    let stock = await stockRep.findOne({
+      where: { tenant_id, sucursal_id, producto_id },
+    });
+    if (!stock) {
+      stock = stockRep.create({
+        tenant_id,
+        sucursal_id,
+        producto_id,
+        cantidadTotal: Number(cantidad || 0),
+        valorAdquisicion: Number(valorAdquisicionDelta || 0),
+      });
+    } else {
+      stock.cantidadTotal =
+        Number(stock.cantidadTotal || 0) + Number(cantidad || 0);
+      stock.valorAdquisicion =
+        Number(stock.valorAdquisicion || 0) +
+        Number(valorAdquisicionDelta || 0);
+    }
+    const savedStock = await stockRep.save(stock);
+
+    if (movement) {
+      await this.createMovimiento(manager, {
+        tenant_id,
+        sucursal_id,
+        producto_id,
+        tipo: movement.tipo,
+        cantidad_delta: Number(cantidad || 0),
+        valor_delta: Number(valorAdquisicionDelta || 0),
+        stock_resultante: savedStock.cantidadTotal,
+        valor_resultante: savedStock.valorAdquisicion,
+        referencia_tipo: movement.referencia_tipo,
+        referencia_id: movement.referencia_id,
+        usuario_id: movement.usuario_id,
+        observaciones: movement.observaciones,
+      });
+    }
+
+    return savedStock;
+  }
+
+  async getStockByTenant(tenant_id: string): Promise<Stock[]> {
+    return this.stockRep.find({
+      where: { tenant_id },
+      relations: ['producto', 'sucursal'],
+      order: {
+        sucursal_id: 'ASC',
+      },
+    });
+  }
+
+  async transferStock(
+    tenant_id: string,
+    from_sucursal_id: string,
+    to_sucursal_id: string,
+    producto_id: string,
+    cantidad: number,
+  ): Promise<void> {
     if (from_sucursal_id === to_sucursal_id) {
-      throw new BadRequestException('No se puede transferir a la misma sucursal');
+      throw new BadRequestException(
+        'No se puede transferir a la misma sucursal',
+      );
     }
     if (cantidad <= 0) {
       throw new BadRequestException('La cantidad debe ser mayor a cero');
@@ -52,26 +141,33 @@ export class StockService {
       // Bloquear registro origen
       const sourceStock = await queryRunner.manager.findOne(Stock, {
         where: { tenant_id, sucursal_id: from_sucursal_id, producto_id },
-        lock: { mode: 'pessimistic_write' }
+        lock: { mode: 'pessimistic_write' },
       });
 
       if (!sourceStock || sourceStock.cantidadTotal < cantidad) {
-        throw new BadRequestException(`Stock insuficiente en sucursal origen. Disponible: ${sourceStock ? sourceStock.cantidadTotal : 0}`);
+        throw new BadRequestException(
+          `Stock insuficiente en sucursal origen. Disponible: ${sourceStock ? sourceStock.cantidadTotal : 0}`,
+        );
       }
 
       // Calcular valor de la porción transferida
-      const avgCost = sourceStock.cantidadTotal > 0 ? (Number(sourceStock.valorAdquisicion || 0) / sourceStock.cantidadTotal) : 0;
+      const avgCost =
+        sourceStock.cantidadTotal > 0
+          ? Number(sourceStock.valorAdquisicion || 0) /
+            sourceStock.cantidadTotal
+          : 0;
       const transferredValue = avgCost * cantidad;
 
       // Descontar de origen
       sourceStock.cantidadTotal = Number(sourceStock.cantidadTotal) - cantidad;
-      sourceStock.valorAdquisicion = Number(sourceStock.valorAdquisicion) - transferredValue;
+      sourceStock.valorAdquisicion =
+        Number(sourceStock.valorAdquisicion) - transferredValue;
       await queryRunner.manager.save(Stock, sourceStock);
 
       // Bloquear/Crear registro destino
       let targetStock = await queryRunner.manager.findOne(Stock, {
         where: { tenant_id, sucursal_id: to_sucursal_id, producto_id },
-        lock: { mode: 'pessimistic_write' }
+        lock: { mode: 'pessimistic_write' },
       });
 
       if (!targetStock) {
@@ -80,13 +176,54 @@ export class StockService {
           sucursal_id: to_sucursal_id,
           producto_id,
           cantidadTotal: cantidad,
-          valorAdquisicion: transferredValue
+          valorAdquisicion: transferredValue,
         });
       } else {
-        targetStock.cantidadTotal = Number(targetStock.cantidadTotal || 0) + cantidad;
-        targetStock.valorAdquisicion = Number(targetStock.valorAdquisicion || 0) + transferredValue;
+        targetStock.cantidadTotal =
+          Number(targetStock.cantidadTotal || 0) + cantidad;
+        targetStock.valorAdquisicion =
+          Number(targetStock.valorAdquisicion || 0) + transferredValue;
       }
       await queryRunner.manager.save(Stock, targetStock);
+
+      const transferencia = queryRunner.manager.create(TransferenciaStock, {
+        tenant_id,
+        from_sucursal_id,
+        to_sucursal_id,
+        producto_id,
+        cantidad,
+        valorTransferido: transferredValue,
+      });
+      const savedTransferencia = await queryRunner.manager.save(
+        TransferenciaStock,
+        transferencia,
+      );
+
+      await this.createMovimiento(queryRunner.manager, {
+        tenant_id,
+        sucursal_id: from_sucursal_id,
+        producto_id,
+        tipo: MovimientoInventarioTipo.TRANSFERENCIA_SALIDA,
+        cantidad_delta: -cantidad,
+        valor_delta: -transferredValue,
+        stock_resultante: sourceStock.cantidadTotal,
+        valor_resultante: sourceStock.valorAdquisicion,
+        referencia_tipo: 'TRANSFERENCIA_STOCK',
+        referencia_id: savedTransferencia?.id,
+      });
+
+      await this.createMovimiento(queryRunner.manager, {
+        tenant_id,
+        sucursal_id: to_sucursal_id,
+        producto_id,
+        tipo: MovimientoInventarioTipo.TRANSFERENCIA_ENTRADA,
+        cantidad_delta: cantidad,
+        valor_delta: transferredValue,
+        stock_resultante: targetStock.cantidadTotal,
+        valor_resultante: targetStock.valorAdquisicion,
+        referencia_tipo: 'TRANSFERENCIA_STOCK',
+        referencia_id: savedTransferencia?.id,
+      });
 
       await queryRunner.commitTransaction();
     } catch (err) {
@@ -95,5 +232,26 @@ export class StockService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private async createMovimiento(
+    manager: EntityManager,
+    data: {
+      tenant_id: string;
+      sucursal_id: string;
+      producto_id: string;
+      tipo: MovimientoInventarioTipo;
+      cantidad_delta: number;
+      valor_delta: number;
+      stock_resultante?: number;
+      valor_resultante?: number;
+      referencia_tipo?: string;
+      referencia_id?: string;
+      usuario_id?: string;
+      observaciones?: string;
+    },
+  ): Promise<void> {
+    const movimiento = manager.create(MovimientoInventario, data);
+    await manager.save(MovimientoInventario, movimiento);
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -17,9 +21,13 @@ export class UsersService {
   ) {}
 
   async create(tenant_id: string, dto: CreateUserDto): Promise<User> {
-    const existing = await this.userRep.findOne({ where: { email: dto.email } });
+    const existing = await this.userRep.findOne({
+      where: { email: dto.email },
+    });
     if (existing) {
-      throw new BadRequestException('El correo electrónico ya está registrado.');
+      throw new BadRequestException(
+        'El correo electrónico ya está registrado.',
+      );
     }
 
     const salt = await bcrypt.genSalt();
@@ -38,7 +46,15 @@ export class UsersService {
     return this.userRep.find({
       where: { tenant_id },
       relations: ['sucursal'],
-      select: ['id', 'name', 'email', 'role', 'isActive', 'createdAt', 'sucursal_id'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'role',
+        'isActive',
+        'createdAt',
+        'sucursal_id',
+      ],
     });
   }
 
@@ -51,27 +67,44 @@ export class UsersService {
   async remove(tenant_id: string, id: string): Promise<void> {
     const user = await this.findOne(tenant_id, id);
     if (user.role === UserRole.OWNER) {
-      throw new BadRequestException('No se puede eliminar al dueño de la tienda.');
+      throw new BadRequestException(
+        'No se puede eliminar al dueño de la tienda.',
+      );
     }
     await this.userRep.remove(user);
   }
 
-  async update(tenant_id: string, id: string, dto: Partial<CreateUserDto>, requesterId?: string): Promise<User> {
+  async update(
+    tenant_id: string,
+    id: string,
+    dto: Partial<CreateUserDto>,
+    requesterId?: string,
+  ): Promise<User> {
     const user = await this.findOne(tenant_id, id);
 
     // Proteccion: No se puede cambiar el rol del Owner original
-    if (user.role === UserRole.OWNER && dto.role && dto.role !== UserRole.OWNER) {
-      throw new BadRequestException('No se puede degradar el perfil del Dueño de la tienda.');
+    if (
+      user.role === UserRole.OWNER &&
+      dto.role &&
+      dto.role !== UserRole.OWNER
+    ) {
+      throw new BadRequestException(
+        'No se puede degradar el perfil del Dueño de la tienda.',
+      );
     }
 
     // Proteccion: No se puede desactivar al Owner original
     if (user.role === UserRole.OWNER && dto.isActive === false) {
-      throw new BadRequestException('No se puede desactivar la cuenta del Administrador principal (Dueño).');
+      throw new BadRequestException(
+        'No se puede desactivar la cuenta del Administrador principal (Dueño).',
+      );
     }
 
     // Proteccion: Un usuario no puede desactivar su propia cuenta
     if (id === requesterId && dto.isActive === false) {
-      throw new BadRequestException('No puedes desactivar tu propia cuenta de acceso.');
+      throw new BadRequestException(
+        'No puedes desactivar tu propia cuenta de acceso.',
+      );
     }
 
     if (dto.password && dto.password.trim() !== '') {
@@ -91,8 +124,13 @@ export class UsersService {
     return this.permissionsRep.find({ where: { tenant_id } });
   }
 
-  async updatePermissions(tenant_id: string, dto: UpdatePermissionsDto): Promise<RolePermissions> {
-    let perm = await this.permissionsRep.findOne({ where: { tenant_id, role: dto.role } });
+  async updatePermissions(
+    tenant_id: string,
+    dto: UpdatePermissionsDto,
+  ): Promise<RolePermissions> {
+    let perm = await this.permissionsRep.findOne({
+      where: { tenant_id, role: dto.role },
+    });
     if (!perm) {
       perm = this.permissionsRep.create({ tenant_id, role: dto.role });
     }
@@ -100,7 +138,10 @@ export class UsersService {
     return this.permissionsRep.save(perm);
   }
 
-  async seedDefaultPermissions(tenant_id: string, manager?: EntityManager): Promise<void> {
+  async seedDefaultPermissions(
+    tenant_id: string,
+    manager?: EntityManager,
+  ): Promise<void> {
     const supervisor = this.permissionsRep.create({
       tenant_id,
       role: UserRole.SUPERVISOR,

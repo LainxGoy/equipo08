@@ -47,16 +47,22 @@ describe('VentasService (Prueba Unitarias Sencilla)', () => {
   describe('getSiguienteNumero', () => {
     it('debería retornar el siguiente número formateado con 6 dígitos cuando el conteo de ventas es 0', async () => {
       ventaRepositoryMock.count.mockResolvedValue(0);
-      const result = await service.getSiguienteNumero('tenant-id', 'sucursal-id');
+      const result = await service.getSiguienteNumero(
+        'tenant-id',
+        'sucursal-id',
+      );
       expect(result).toBe('000001');
       expect(ventaRepositoryMock.count).toHaveBeenCalledWith({
-        where: { tenant_id: 'tenant-id', sucursal_id: 'sucursal-id' }
+        where: { tenant_id: 'tenant-id', sucursal_id: 'sucursal-id' },
       });
     });
 
     it('debería retornar 000016 cuando el conteo es 15', async () => {
       ventaRepositoryMock.count.mockResolvedValue(15);
-      const result = await service.getSiguienteNumero('tenant-id', 'sucursal-id');
+      const result = await service.getSiguienteNumero(
+        'tenant-id',
+        'sucursal-id',
+      );
       expect(result).toBe('000016');
     });
   });

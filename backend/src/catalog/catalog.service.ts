@@ -34,7 +34,10 @@ export class CatalogService {
         const stocks = await this.stockRepo.find({
           where: { tenant_id: tenant.id, producto_id: prod.id },
         });
-        const stockTotal = stocks.reduce((acc, curr) => acc + curr.cantidadTotal, 0);
+        const stockTotal = stocks.reduce(
+          (acc, curr) => acc + curr.cantidadTotal,
+          0,
+        );
         return {
           id: prod.id,
           name: prod.name,
@@ -46,7 +49,7 @@ export class CatalogService {
           attributes: prod.attributes,
           stockTotal,
         };
-      })
+      }),
     );
 
     return {
@@ -59,7 +62,7 @@ export class CatalogService {
         brandColor: tenant.brandColor,
         phone: tenant.phone,
       },
-      productos: productosConStock.filter(p => p.stockTotal > 0), // Solo mostrar con stock
+      productos: productosConStock.filter((p) => p.stockTotal > 0), // Solo mostrar con stock
     };
   }
 }

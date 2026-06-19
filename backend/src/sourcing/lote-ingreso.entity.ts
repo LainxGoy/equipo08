@@ -1,6 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Producto } from '../productos/producto.entity';
 import { Proveedor } from '../proveedores/proveedor.entity';
+import { Sucursal } from '../sucursales/sucursal.entity';
 
 @Entity('lotes_ingreso')
 @Index(['tenant_id', 'id'])
@@ -42,4 +51,8 @@ export class LoteIngreso {
   @ManyToOne(() => Proveedor)
   @JoinColumn({ name: 'proveedor_id' })
   proveedor: Proveedor;
+
+  @ManyToOne(() => Sucursal)
+  @JoinColumn({ name: 'sucursal_id' })
+  sucursal: Sucursal;
 }

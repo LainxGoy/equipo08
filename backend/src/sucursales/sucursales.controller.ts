@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SucursalesService } from './sucursales.service';
 import { CreateSucursalDto } from './dto/create-sucursal.dto';
 import { TenantId } from '../tenant/tenant-id.decorator';

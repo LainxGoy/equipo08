@@ -1,4 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Proveedor } from '../proveedores/proveedor.entity';
 import { Stock } from '../stock/stock.entity';
 
@@ -17,7 +27,7 @@ export class Producto {
 
   @Column()
   sku: string;
-  
+
   @Column({ nullable: true })
   description: string;
 
@@ -52,6 +62,6 @@ export class Producto {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Stock, stock => stock.producto)
+  @OneToMany(() => Stock, (stock) => stock.producto)
   stocks: Stock[];
 }

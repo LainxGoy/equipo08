@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -21,18 +25,22 @@ export class AuthService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async register(dto: RegisterDto): Promise<{ message: string; tenant_id: string }> {
+  async register(
+    dto: RegisterDto,
+  ): Promise<{ message: string; tenant_id: string }> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       const existingTenant = await queryRunner.manager.findOne(Tenant, {
-        where: [{ email: dto.email }, { domain: dto.domain }]
+        where: [{ email: dto.email }, { domain: dto.domain }],
       });
 
       if (existingTenant) {
-        throw new BadRequestException('El correo o dominio ya está registrado para otra tienda.');
+        throw new BadRequestException(
+          'El correo o dominio ya está registrado para otra tienda.',
+        );
       }
 
       // 1. Create Tenant
@@ -63,12 +71,17 @@ export class AuthService {
       await queryRunner.manager.save(user);
 
       // 3. Seed Default Permissions
-      await this.usersService.seedDefaultPermissions(savedTenant.id, queryRunner.manager);
+      await this.usersService.seedDefaultPermissions(
+        savedTenant.id,
+        queryRunner.manager,
+      );
 
       await queryRunner.commitTransaction();
 
       // Enviar correo de confirmación de registro de forma asíncrona
-      this.mailService.sendRegistrationEmail(dto.email, dto.name).catch(e => console.error(e));
+      this.mailService
+        .sendRegistrationEmail(dto.email, dto.name)
+        .catch((e) => console.error(e));
 
       return {
         message: 'Cuenta creada y pendiente de aprobación.',
@@ -84,22 +97,25 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<{ access_token: string; user: any }> {
     // 1. Intentar buscar en la nueva tabla de usuarios
-    let user = await this.dataSource.getRepository(User).findOne({ 
+    let user = await this.dataSource.getRepository(User).findOne({
       where: { email: dto.email },
-      relations: ['tenant', 'sucursal']
+      relations: ['tenant', 'sucursal'],
     });
 
     if (!user) {
       // 2. MIGRACIÓN LEGACY: Buscar si existe un Tenant viejo sin un User asociado
       const legacyTenant = await this.dataSource.getRepository(Tenant).findOne({
-        where: { email: dto.email }
+        where: { email: dto.email },
       });
 
       if (!legacyTenant) {
         throw new UnauthorizedException('Credenciales inválidas');
       }
 
-      const isLegacyMatch = await bcrypt.compare(dto.password, legacyTenant.password);
+      const isLegacyMatch = await bcrypt.compare(
+        dto.password,
+        legacyTenant.password,
+      );
       if (!isLegacyMatch) {
         throw new UnauthorizedException('Credenciales inválidas');
       }
@@ -111,7 +127,7 @@ export class AuthService {
         password: legacyTenant.password,
         role: UserRole.OWNER,
         tenant_id: legacyTenant.id,
-        tenant: legacyTenant
+        tenant: legacyTenant,
       });
       await this.dataSource.getRepository(User).save(user);
 
@@ -141,22 +157,30 @@ export class AuthService {
         throw new UnauthorizedException('PENDING_APPROVAL');
       }
       if (user.tenant.status !== TenantStatus.APPROVED) {
-        throw new UnauthorizedException(`La tienda no está aprobada (Estado: ${user.tenant.status})`);
+        throw new UnauthorizedException(
+          `La tienda no está aprobada (Estado: ${user.tenant.status})`,
+        );
       }
     }
 
-    const payload = { 
-      sub: user.id, 
-      tenantId: user.tenant_id, 
+    const payload = {
+      sub: user.id,
+      tenantId: user.tenant_id,
       role: user.role,
       tenantName: user.tenant?.name || 'Administración Global',
-      sucursal_id: user.sucursal_id
+      sucursal_id: user.sucursal_id,
     };
 
     let userPermissions = null;
-    if (user.role !== UserRole.OWNER && user.role !== UserRole.SUPER_ADMIN && user.tenant_id) {
-      const allPermissions = await this.usersService.getPermissions(user.tenant_id);
-      userPermissions = allPermissions.find(p => p.role === user.role) || {};
+    if (
+      user.role !== UserRole.OWNER &&
+      user.role !== UserRole.SUPER_ADMIN &&
+      user.tenant_id
+    ) {
+      const allPermissions = await this.usersService.getPermissions(
+        user.tenant_id,
+      );
+      userPermissions = allPermissions.find((p) => p.role === user.role) || {};
     }
 
     return {
@@ -172,8 +196,8 @@ export class AuthService {
         tenant_logoUrl: user.tenant?.logoUrl || null,
         sucursal_id: user.sucursal_id || null,
         sucursal_name: user.sucursal?.name || null,
-        permissions: userPermissions
-      }
+        permissions: userPermissions,
+      },
     };
   }
 }

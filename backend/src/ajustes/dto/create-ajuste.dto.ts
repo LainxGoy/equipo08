@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsString, IsEnum, IsUUID, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsEnum,
+  IsUUID,
+  IsOptional,
+} from 'class-validator';
 import { MotivoAjuste } from '../ajuste.entity';
 
 export class CreateAjusteDto {
@@ -18,8 +25,13 @@ export class CreateAjusteDto {
   @IsNumber({}, { message: 'La cantidad_fisica debe ser un número' })
   cantidad_fisica: number;
 
-  @IsNotEmpty({ message: 'Debe especificar el motivo del ajuste para procesar el acta.' })
-  @IsEnum(MotivoAjuste, { message: 'El motivo proporcionado no está en la lista de categorizaciones oficiales (ROBO_O_PERDIDA, DANO_MERMA, ERROR_REGISTRO)' })
+  @IsNotEmpty({
+    message: 'Debe especificar el motivo del ajuste para procesar el acta.',
+  })
+  @IsEnum(MotivoAjuste, {
+    message:
+      'El motivo proporcionado no está en la lista de categorizaciones oficiales (ROBO_O_PERDIDA, DANO_MERMA, ERROR_REGISTRO)',
+  })
   motivo: MotivoAjuste;
 
   @IsOptional()

@@ -2,7 +2,9 @@ import { IsBoolean, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { UserRole } from '../user.entity';
 
 export class UpdatePermissionsDto {
-  @IsEnum([UserRole.SUPERVISOR, UserRole.VENDEDOR], { message: 'Solo se pueden configurar permisos para SUPERVISOR o VENDEDOR' })
+  @IsEnum([UserRole.SUPERVISOR, UserRole.VENDEDOR], {
+    message: 'Solo se pueden configurar permisos para SUPERVISOR o VENDEDOR',
+  })
   @IsNotEmpty()
   role: string;
 

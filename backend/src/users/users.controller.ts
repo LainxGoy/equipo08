@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  Req,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
@@ -32,7 +41,7 @@ export class UsersController {
       email: user.email,
       role: user.role,
       sucursal_id: user.sucursal_id,
-      sucursal_name: user.sucursal?.name || null
+      sucursal_name: user.sucursal?.name || null,
     };
   }
 
@@ -43,7 +52,10 @@ export class UsersController {
 
   @Put('permissions')
   @Roles(UserRole.OWNER)
-  updatePermissions(@TenantId() tenant_id: string, @Body() dto: UpdatePermissionsDto) {
+  updatePermissions(
+    @TenantId() tenant_id: string,
+    @Body() dto: UpdatePermissionsDto,
+  ) {
     return this.usersService.updatePermissions(tenant_id, dto);
   }
 
@@ -62,10 +74,10 @@ export class UsersController {
   @Put(':id')
   @RequirePermission('usuarios.editar')
   update(
-    @TenantId() tenant_id: string, 
-    @Param('id') id: string, 
+    @TenantId() tenant_id: string,
+    @Param('id') id: string,
     @Body() dto: Partial<CreateUserDto>,
-    @Req() req: any
+    @Req() req: any,
   ) {
     return this.usersService.update(tenant_id, id, dto, req.user.userId);
   }

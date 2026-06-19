@@ -19,6 +19,12 @@ export class StockController {
   @Post('transfer')
   @RequirePermission('inventario.editar') // or inventario.crear depending on roles
   transferStock(@TenantId() tenantId: string, @Body() dto: TransferStockDto) {
-    return this.stockService.transferStock(tenantId, dto.from_sucursal_id, dto.to_sucursal_id, dto.producto_id, dto.cantidad);
+    return this.stockService.transferStock(
+      tenantId,
+      dto.from_sucursal_id,
+      dto.to_sucursal_id,
+      dto.producto_id,
+      dto.cantidad,
+    );
   }
 }

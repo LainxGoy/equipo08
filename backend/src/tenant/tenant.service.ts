@@ -18,7 +18,16 @@ export class TenantService {
     return safeTenant;
   }
 
-  async updateProfile(tenantId: string, data: { name?: string; phone?: string; logoUrl?: string; bannerUrl?: string; brandColor?: string }) {
+  async updateProfile(
+    tenantId: string,
+    data: {
+      name?: string;
+      phone?: string;
+      logoUrl?: string;
+      bannerUrl?: string;
+      brandColor?: string;
+    },
+  ) {
     const tenant = await this.tenantRepo.findOne({ where: { id: tenantId } });
     if (!tenant) throw new NotFoundException('Tienda no encontrada');
 

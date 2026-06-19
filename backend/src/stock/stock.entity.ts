@@ -1,4 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Producto } from '../productos/producto.entity';
 import { Sucursal } from '../sucursales/sucursal.entity';
 

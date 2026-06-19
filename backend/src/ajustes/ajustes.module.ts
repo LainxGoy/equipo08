@@ -6,10 +6,7 @@ import { AjustesController } from './ajustes.controller';
 import { StockModule } from '../stock/stock.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([AjusteInventario]),
-    StockModule,
-  ],
+  imports: [TypeOrmModule.forFeature([AjusteInventario]), StockModule],
   controllers: [AjustesController],
   providers: [AjustesService],
   exports: [AjustesService],

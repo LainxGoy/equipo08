@@ -5,11 +5,16 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
 } from 'typeorm';
+import { Tenant } from '../tenant/tenant.entity';
+import { Venta } from '../ventas/venta.entity';
 
-@Entity('sucursales')
-@Index(['tenant_id', 'id'])
-export class Sucursal {
+@Entity('clientes')
+@Index(['tenant_id', 'documento'])
+export class Cliente {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -17,19 +22,26 @@ export class Sucursal {
   tenant_id: string;
 
   @Column()
-  name: string;
+  nombre: string;
 
   @Column({ nullable: true })
-  address: string;
+  documento: string;
 
   @Column({ nullable: true })
-  phone: string;
+  email: string;
 
   @Column({ nullable: true })
-  horarios: string;
+  telefono: string;
 
   @Column({ default: true })
   isActive: boolean;
+
+  @ManyToOne(() => Tenant)
+  @JoinColumn({ name: 'tenant_id' })
+  tenant: Tenant;
+
+  @OneToMany(() => Venta, (venta) => venta.cliente)
+  ventas: Venta[];
 
   @CreateDateColumn()
   createdAt: Date;

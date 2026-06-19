@@ -7,7 +7,10 @@ import { StockModule } from '../stock/stock.module';
 import { AjusteInventario } from '../ajustes/ajuste.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LoteIngreso, AjusteInventario]), StockModule],
+  imports: [
+    TypeOrmModule.forFeature([LoteIngreso, AjusteInventario]),
+    StockModule,
+  ],
   controllers: [SourcingController],
   providers: [SourcingService],
 })

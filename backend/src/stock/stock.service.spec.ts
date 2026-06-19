@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StockService } from './stock.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Stock } from './stock.entity';
+import { MovimientoInventario } from './movimiento-inventario.entity';
+import { TransferenciaStock } from './transferencia-stock.entity';
 import { DataSource } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
 
@@ -15,14 +17,14 @@ describe('StockService (Prueba Unitaria Compleja)', () => {
   beforeEach(async () => {
     stockRepositoryMock = {
       findOne: jest.fn(),
-      create: jest.fn(),
+      create: jest.fn((_entity: any, data: any) => data),
       save: jest.fn(),
       find: jest.fn(),
     };
 
     managerMock = {
       findOne: jest.fn(),
-      create: jest.fn(),
+      create: jest.fn((_entity: any, data: any) => data),
       save: jest.fn(),
     };
 
@@ -63,13 +65,25 @@ describe('StockService (Prueba Unitaria Compleja)', () => {
   describe('transferStock (Compleja)', () => {
     it('debería lanzar error si la sucursal de origen y destino son la misma', async () => {
       await expect(
-        service.transferStock('tenant-1', 'sucursal-A', 'sucursal-A', 'prod-1', 5)
+        service.transferStock(
+          'tenant-1',
+          'sucursal-A',
+          'sucursal-A',
+          'prod-1',
+          5,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('debería lanzar error si la cantidad es menor o igual a cero', async () => {
       await expect(
-        service.transferStock('tenant-1', 'sucursal-A', 'sucursal-B', 'prod-1', 0)
+        service.transferStock(
+          'tenant-1',
+          'sucursal-A',
+          'sucursal-B',
+          'prod-1',
+          0,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -95,7 +109,13 @@ describe('StockService (Prueba Unitaria Compleja)', () => {
         .mockResolvedValueOnce(sourceStock) // Primera llamada: origen
         .mockResolvedValueOnce(targetStock); // Segunda llamada: destino
 
-      await service.transferStock('tenant-1', 'sucursal-A', 'sucursal-B', 'prod-1', 5);
+      await service.transferStock(
+        'tenant-1',
+        'sucursal-A',
+        'sucursal-B',
+        'prod-1',
+        5,
+      );
 
       // Verificaciones del QueryRunner y Transacción
       expect(dataSourceMock.createQueryRunner).toHaveBeenCalled();
@@ -111,8 +131,32 @@ describe('StockService (Prueba Unitaria Compleja)', () => {
       expect(targetStock.cantidadTotal).toBe(7);
       expect(targetStock.valorAdquisicion).toBe(70); // 20 + 50 = 70
 
-      // Guardados en la transacción
-      expect(managerMock.save).toHaveBeenCalledTimes(2);
+      // Guardados en la transacción: origen, destino, cabecera de transferencia y dos movimientos.
+      expect(managerMock.save).toHaveBeenCalledTimes(5);
+      expect(managerMock.save).toHaveBeenCalledWith(
+        TransferenciaStock,
+        expect.objectContaining({
+          tenant_id: 'tenant-1',
+          from_sucursal_id: 'sucursal-A',
+          to_sucursal_id: 'sucursal-B',
+          producto_id: 'prod-1',
+          cantidad: 5,
+        }),
+      );
+      expect(managerMock.save).toHaveBeenCalledWith(
+        MovimientoInventario,
+        expect.objectContaining({
+          sucursal_id: 'sucursal-A',
+          cantidad_delta: -5,
+        }),
+      );
+      expect(managerMock.save).toHaveBeenCalledWith(
+        MovimientoInventario,
+        expect.objectContaining({
+          sucursal_id: 'sucursal-B',
+          cantidad_delta: 5,
+        }),
+      );
       expect(queryRunnerMock.commitTransaction).toHaveBeenCalled();
       expect(queryRunnerMock.release).toHaveBeenCalled();
     });
@@ -121,7 +165,13 @@ describe('StockService (Prueba Unitaria Compleja)', () => {
       managerMock.findOne.mockRejectedValue(new Error('DB connection lost'));
 
       await expect(
-        service.transferStock('tenant-1', 'sucursal-A', 'sucursal-B', 'prod-1', 5)
+        service.transferStock(
+          'tenant-1',
+          'sucursal-A',
+          'sucursal-B',
+          'prod-1',
+          5,
+        ),
       ).rejects.toThrow('DB connection lost');
 
       expect(queryRunnerMock.rollbackTransaction).toHaveBeenCalled();

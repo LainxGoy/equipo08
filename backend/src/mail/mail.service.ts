@@ -35,7 +35,9 @@ export class MailService {
           </div>
         `,
       });
-      this.logger.log(`Email de registro enviado a ${email}: ${info.messageId}`);
+      this.logger.log(
+        `Email de registro enviado a ${email}: ${info.messageId}`,
+      );
     } catch (error) {
       this.logger.error('Error enviando email de registro', error);
     }
@@ -60,7 +62,9 @@ export class MailService {
           </div>
         `,
       });
-      this.logger.log(`Email de aprobación enviado a ${email}: ${info.messageId}`);
+      this.logger.log(
+        `Email de aprobación enviado a ${email}: ${info.messageId}`,
+      );
     } catch (error) {
       this.logger.error('Error enviando email de aprobación', error);
     }
@@ -69,7 +73,7 @@ export class MailService {
   async sendStatusEmail(email: string, tenantName: string, status: string) {
     let subject = '';
     let body = '';
-    
+
     if (status === 'REJECTED') {
       subject = `❌ Solicitud de tienda rechazada`;
       body = `<p style="font-size: 16px; line-height: 1.6; color: #1a202c;">Lamentamos informarte que la solicitud para tu tienda <strong>${tenantName}</strong> ha sido <strong>RECHAZADA</strong>.</p>
@@ -79,7 +83,7 @@ export class MailService {
       body = `<p style="font-size: 16px; line-height: 1.6; color: #1a202c;">Te informamos que tu tienda <strong>${tenantName}</strong> ha sido <strong>SUSPENDIDA</strong> temporalmente.</p>
               <p style="font-size: 16px; line-height: 1.6; color: #1a202c;">El acceso al sistema está restringido hasta nuevo aviso. Contáctanos para solucionar esta situación.</p>`;
     } else {
-      return; 
+      return;
     }
 
     try {
@@ -96,7 +100,9 @@ export class MailService {
           </div>
         `,
       });
-      this.logger.log(`Email de estado (${status}) enviado a ${email}: ${info.messageId}`);
+      this.logger.log(
+        `Email de estado (${status}) enviado a ${email}: ${info.messageId}`,
+      );
     } catch (error) {
       this.logger.error(`Error enviando email de estado (${status})`, error);
     }

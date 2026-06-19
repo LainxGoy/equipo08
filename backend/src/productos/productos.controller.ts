@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { ProductosService } from './productos.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { TenantId } from '../tenant/tenant-id.decorator';
@@ -25,10 +36,7 @@ export class ProductosController {
 
   @Post()
   @RequirePermission('catalogo.crear')
-  create(
-    @TenantId() tenantId: string,
-    @Body() dto: CreateProductoDto,
-  ) {
+  create(@TenantId() tenantId: string, @Body() dto: CreateProductoDto) {
     return this.productosService.create(tenantId, dto);
   }
 

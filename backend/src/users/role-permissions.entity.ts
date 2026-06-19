@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Tenant } from '../tenant/tenant.entity';
 
 @Entity('role_permissions')

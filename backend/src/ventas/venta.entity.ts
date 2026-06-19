@@ -1,5 +1,17 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { Sucursal } from '../sucursales/sucursal.entity';
+import { Cliente } from '../clientes/cliente.entity';
+import { User } from '../users/user.entity';
+import { VentaDetalle } from './venta-detalle.entity';
 
 @Entity('ventas')
 @Index(['tenant_id'])
@@ -15,9 +27,14 @@ export class Venta {
   @Column()
   sucursal_id: string;
 
+  @Column({ nullable: true })
+  cliente_id: string;
+
+  @Column({ nullable: true })
+  vendedor_id: string;
+
   @Column()
   numeroComprobante: string;
-
 
   @Column()
   clienteNombre: string;
@@ -35,6 +52,7 @@ export class Venta {
     name: string;
     cantidad: number;
     precioUnitario: number;
+    costoUnitario?: number;
     subtotal: number;
   }>;
 
@@ -62,4 +80,18 @@ export class Venta {
   @ManyToOne(() => Sucursal)
   @JoinColumn({ name: 'sucursal_id' })
   sucursal: Sucursal;
+
+  @ManyToOne(() => Cliente, (cliente) => cliente.ventas, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'cliente_id' })
+  cliente: Cliente;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'vendedor_id' })
+  vendedor: User;
+
+  @OneToMany(() => VentaDetalle, (detalle) => detalle.venta)
+  detalles: VentaDetalle[];
 }

@@ -46,11 +46,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('BRANCH_DISABLED');
     }
 
-    return { 
-      userId: payload.sub, 
-      tenantId: payload.tenantId, 
+    return {
+      userId: payload.sub,
+      tenantId: payload.tenantId,
       role: payload.role,
-      tenantName: payload.tenantName 
+      tenantName: payload.tenantName,
     };
   }
 }

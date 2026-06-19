@@ -2,7 +2,9 @@ import { IsEmail, IsNotEmpty, MinLength, Matches } from 'class-validator';
 
 export class RegisterDto {
   @IsNotEmpty({ message: 'El nombre de la tienda es obligatorio' })
-  @Matches(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'El nombre de la tienda no puede contener números ni símbolos' })
+  @Matches(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/, {
+    message: 'El nombre de la tienda no puede contener números ni símbolos',
+  })
   name: string;
 
   domain: string;
