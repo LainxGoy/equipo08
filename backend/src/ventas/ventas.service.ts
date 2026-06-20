@@ -31,6 +31,7 @@ type LegacyVentaItem = {
 };
 
 type ProcessedVentaItem = LegacyVentaItem & {
+  stock_id?: string;
   costoSubtotal: number;
   utilidadSubtotal: number;
   stockResultante: number;
@@ -121,6 +122,7 @@ export class VentasService {
           cantidad: item.cantidad,
           precioUnitario,
           costoUnitario,
+          stock_id: stock.id,
           subtotal,
           costoSubtotal,
           utilidadSubtotal,
@@ -188,6 +190,7 @@ export class VentasService {
           tenant_id,
           sucursal_id: dto.sucursal_id,
           producto_id: item.producto_id,
+          stock_id: item.stock_id,
           usuario_id: vendedor_id,
           tipo: MovimientoInventarioTipo.VENTA,
           cantidad_delta: -item.cantidad,

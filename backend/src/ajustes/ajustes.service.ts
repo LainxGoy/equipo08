@@ -44,6 +44,7 @@ export class AjustesService {
     const nuevoAjuste = this.ajusteRep.create({
       tenant_id,
       usuario_id,
+      stock_id: stockActual?.id,
       ...dto,
       valor_perdido,
     });

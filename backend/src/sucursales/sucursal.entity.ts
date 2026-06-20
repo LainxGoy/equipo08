@@ -5,7 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Tenant } from '../tenant/tenant.entity';
 
 @Entity('sucursales')
 @Index(['tenant_id', 'id'])
@@ -15,6 +18,13 @@ export class Sucursal {
 
   @Column()
   tenant_id: string;
+
+  @ManyToOne(() => Tenant, {
+    onDelete: 'CASCADE',
+    createForeignKeyConstraints: false,
+  })
+  @JoinColumn({ name: 'tenant_id' })
+  tenant: Tenant;
 
   @Column()
   name: string;

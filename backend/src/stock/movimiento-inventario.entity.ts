@@ -10,6 +10,7 @@ import {
 import { Sucursal } from '../sucursales/sucursal.entity';
 import { Producto } from '../productos/producto.entity';
 import { User } from '../users/user.entity';
+import { Stock } from './stock.entity';
 
 export enum MovimientoInventarioTipo {
   INGRESO = 'INGRESO',
@@ -21,6 +22,7 @@ export enum MovimientoInventarioTipo {
 }
 
 @Entity('movimientos_inventario')
+@Index(['stock_id'])
 @Index(['tenant_id', 'sucursal_id', 'producto_id'])
 @Index(['tenant_id', 'referencia_tipo', 'referencia_id'])
 export class MovimientoInventario {
@@ -38,6 +40,9 @@ export class MovimientoInventario {
 
   @Column({ nullable: true })
   usuario_id: string;
+
+  @Column({ nullable: true })
+  stock_id: string;
 
   @Column({
     type: 'enum',
@@ -67,15 +72,19 @@ export class MovimientoInventario {
   observaciones: string;
 
 
-  @ManyToOne(() => Sucursal)
+  @ManyToOne(() => Stock, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'stock_id' })
+  stock: Stock;
+
+  @ManyToOne(() => Sucursal, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'sucursal_id' })
   sucursal: Sucursal;
 
-  @ManyToOne(() => Producto)
+  @ManyToOne(() => Producto, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'producto_id' })
   producto: Producto;
 
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true, createForeignKeyConstraints: false })
   @JoinColumn({ name: 'usuario_id' })
   usuario: User;
 

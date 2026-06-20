@@ -92,6 +92,7 @@ export class StockService {
         tenant_id,
         sucursal_id,
         producto_id,
+        stock_id: savedStock.id,
         tipo: movement.tipo,
         cantidad_delta: Number(cantidad || 0),
         valor_delta: Number(valorAdquisicionDelta || 0),
@@ -191,6 +192,8 @@ export class StockService {
         from_sucursal_id,
         to_sucursal_id,
         producto_id,
+        from_stock_id: sourceStock.id,
+        to_stock_id: targetStock.id,
         cantidad,
         valorTransferido: transferredValue,
       });
@@ -203,6 +206,7 @@ export class StockService {
         tenant_id,
         sucursal_id: from_sucursal_id,
         producto_id,
+        stock_id: sourceStock.id,
         tipo: MovimientoInventarioTipo.TRANSFERENCIA_SALIDA,
         cantidad_delta: -cantidad,
         valor_delta: -transferredValue,
@@ -216,6 +220,7 @@ export class StockService {
         tenant_id,
         sucursal_id: to_sucursal_id,
         producto_id,
+        stock_id: targetStock.id,
         tipo: MovimientoInventarioTipo.TRANSFERENCIA_ENTRADA,
         cantidad_delta: cantidad,
         valor_delta: transferredValue,
@@ -240,6 +245,7 @@ export class StockService {
       tenant_id: string;
       sucursal_id: string;
       producto_id: string;
+      stock_id?: string;
       tipo: MovimientoInventarioTipo;
       cantidad_delta: number;
       valor_delta: number;

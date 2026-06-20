@@ -1,378 +1,284 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diagrama Limpio de Base de Datos - BolClick</title>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <style>
-    :root {
-      --bg: #f6f8fb;
-      --panel: #ffffff;
-      --ink: #172033;
-      --muted: #5f6d83;
-      --line: #d8e0ea;
-      --accent: #0f7c86;
-      --accent-soft: #e4f4f5;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diagrama Limpio de Base de Datos - BolClick</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --panel: #ffffff;
+        --ink: #172033;
+        --muted: #5f6d83;
+        --line: #d8e0ea;
+        --accent: #0f7c86;
+        --accent-soft: #e4f4f5;
+      }
 
-    * {
-      box-sizing: border-box;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: "Segoe UI", Arial, sans-serif;
-    }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
 
-    main {
-      width: min(1180px, calc(100% - 48px));
-      margin: 0 auto;
-      padding: 36px 0 48px;
-    }
-
-    header {
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 20px;
-      margin-bottom: 28px;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: 30px;
-      letter-spacing: 0;
-    }
-
-    .subtitle {
-      margin: 0;
-      max-width: 820px;
-      color: var(--muted);
-      line-height: 1.55;
-      font-size: 15px;
-    }
-
-    section {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 22px;
-      margin-bottom: 22px;
-      box-shadow: 0 8px 24px rgba(23, 32, 51, 0.05);
-    }
-
-    h2 {
-      margin: 0 0 4px;
-      font-size: 18px;
-      letter-spacing: 0;
-    }
-
-    .note {
-      margin: 0 0 18px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-    }
-
-    .mermaid {
-      width: 100%;
-      overflow-x: auto;
-      padding: 12px;
-      background: #fbfcfe;
-      border: 1px solid #e8eef5;
-      border-radius: 8px;
-    }
-
-    .legend {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .legend span {
-      display: block;
-      background: var(--accent-soft);
-      border: 1px solid #c8e7ea;
-      border-radius: 6px;
-      padding: 8px 10px;
-      color: #22575d;
-    }
-
-    @media (max-width: 720px) {
       main {
-        width: min(100% - 24px, 1180px);
-        padding-top: 24px;
+        width: min(1180px, calc(100% - 48px));
+        margin: 0 auto;
+        padding: 36px 0 48px;
+      }
+
+      header {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 20px;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: 30px;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 0;
+        max-width: 820px;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 15px;
       }
 
       section {
-        padding: 16px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 22px;
+        margin-bottom: 22px;
+        box-shadow: 0 8px 24px rgba(23, 32, 51, 0.05);
       }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <header>
-      <h1>Diagrama Limpio de Base de Datos</h1>
-      <p class="subtitle">
-        Vista de presentacion del modelo. Se muestran las relaciones principales del negocio y se omiten lineas tecnicas repetitivas para que el flujo sea facil de explicar.
-      </p>
-    </header>
 
-    <section>
-      <h2>Vista General</h2>
-      <p class="note">Vista completa con todas las tablas del modelo, agrupadas por modulo y con solo las relaciones principales para evitar cruces innecesarios.</p>
-      <div class="mermaid">
-        flowchart LR
-          TENANTS["TENANTS<br/>tienda"]
-
-          subgraph SEG["Seguridad y estructura"]
-            SUCURSALES["SUCURSALES"]
-            USERS["USERS"]
-            ROLE_PERMISSIONS["ROLE_PERMISSIONS"]
-          end
-
-          subgraph CAT["Catalogo y abastecimiento"]
-            PROVEEDORES["PROVEEDORES"]
-            PRODUCTOS["PRODUCTOS"]
-            LOTES_INGRESO["LOTES_INGRESO"]
-          end
-
-          subgraph VEN["Ventas"]
-            CLIENTES["CLIENTES"]
-            VENTAS["VENTAS"]
-            VENTA_DETALLES["VENTA_DETALLES"]
-          end
-
-          subgraph INV["Inventario"]
-            STOCK["STOCK"]
-            AJUSTES_INVENTARIO["AJUSTES_INVENTARIO"]
-            TRANSFERENCIAS_STOCK["TRANSFERENCIAS_STOCK"]
-            MOVIMIENTOS_INVENTARIO["MOVIMIENTOS_INVENTARIO"]
-          end
-
-          TENANTS --> SUCURSALES
-          SUCURSALES --> USERS
-          USERS --> ROLE_PERMISSIONS
-
-          PROVEEDORES --> PRODUCTOS
-          PRODUCTOS --> LOTES_INGRESO
-
-          CLIENTES --> VENTAS
-          VENTAS --> VENTA_DETALLES
-          PRODUCTOS --> VENTA_DETALLES
-
-          PRODUCTOS --> STOCK
-          SUCURSALES --> STOCK
-
-          LOTES_INGRESO --> MOVIMIENTOS_INVENTARIO
-          VENTA_DETALLES --> MOVIMIENTOS_INVENTARIO
-          AJUSTES_INVENTARIO --> MOVIMIENTOS_INVENTARIO
-          TRANSFERENCIAS_STOCK --> MOVIMIENTOS_INVENTARIO
-      </div>
-      <div class="legend">
-        <span>Incluye las 14 tablas actuales: no es un resumen de 8 tablas.</span>
-        <span>Se omiten varias lineas de tenant_id porque son tecnicas y se repiten en casi todo el modelo.</span>
-      </div>
-    </section>
-
-    <section>
-      <h2>Modulo de Ventas</h2>
-      <p class="note">La venta ya no depende solo de un JSON: ahora llega a productos mediante una tabla intermedia.</p>
-      <div class="mermaid">
-        erDiagram
-          CLIENTES ||--o{ VENTAS : realiza
-          SUCURSALES ||--o{ VENTAS : registra
-          USERS ||--o{ VENTAS : atiende
-          VENTAS ||--o{ VENTA_DETALLES : contiene
-          PRODUCTOS ||--o{ VENTA_DETALLES : vendido_en
-
-          CLIENTES {
-            uuid id PK
-            varchar nombre
-            varchar documento
-          }
-
-          VENTAS {
-            uuid id PK
-            uuid cliente_id FK
-            uuid sucursal_id FK
-            uuid vendedor_id FK
-            varchar numeroComprobante
-            numeric total
-          }
-
-          VENTA_DETALLES {
-            uuid id PK
-            uuid venta_id FK
-            uuid producto_id FK
-            int cantidad
-            numeric precioUnitarioSnapshot
-            numeric subtotal
-          }
-
-          PRODUCTOS {
-            uuid id PK
-            varchar sku
-            varchar name
-            numeric precioVenta
-          }
-
-          SUCURSALES {
-            uuid id PK
-            varchar name
-          }
-
-          USERS {
-            uuid id PK
-            varchar name
-            varchar role
-          }
-      </div>
-    </section>
-
-    <section>
-      <h2>Modulo de Inventario</h2>
-      <p class="note">STOCK resume el saldo actual. MOVIMIENTOS_INVENTARIO explica de donde salio cada cambio.</p>
-      <div class="mermaid">
-        flowchart LR
-          PRODUCTOS["PRODUCTOS"]
-          SUCURSALES["SUCURSALES"]
-          STOCK["STOCK<br/>saldo actual"]
-          MOVS["MOVIMIENTOS_INVENTARIO<br/>historial / Kardex"]
-          LOTES["LOTES_INGRESO"]
-          DETALLES["VENTA_DETALLES"]
-          AJUSTES["AJUSTES_INVENTARIO"]
-          TRANSF["TRANSFERENCIAS_STOCK"]
-
-          PRODUCTOS --> STOCK
-          SUCURSALES --> STOCK
-          STOCK --> MOVS
-
-          LOTES --> MOVS
-          DETALLES --> MOVS
-          AJUSTES --> MOVS
-          TRANSF --> MOVS
-      </div>
-      <div class="legend">
-        <span>Ingreso de mercaderia: LOTES_INGRESO genera movimientos positivos.</span>
-        <span>Venta: VENTA_DETALLES genera movimientos negativos.</span>
-        <span>Ajuste y transferencia: registran correcciones y cambios entre sucursales.</span>
-      </div>
-    </section>
-
-    <section>
-      <h2>Modulo de Abastecimiento</h2>
-      <p class="note">Los proveedores abastecen productos y los lotes registran entradas por sucursal.</p>
-      <div class="mermaid">
-        erDiagram
-          PROVEEDORES ||--o{ PRODUCTOS : provee
-          PROVEEDORES ||--o{ LOTES_INGRESO : abastece
-          PRODUCTOS ||--o{ LOTES_INGRESO : ingresa
-          SUCURSALES ||--o{ LOTES_INGRESO : recibe
-
-          PROVEEDORES {
-            uuid id PK
-            varchar name
-            varchar taxId
-          }
-
-          PRODUCTOS {
-            uuid id PK
-            uuid proveedor_id FK
-            varchar sku
-            varchar name
-            numeric precioCosto
-          }
-
-          LOTES_INGRESO {
-            uuid id PK
-            uuid producto_id FK
-            uuid proveedor_id FK
-            uuid sucursal_id FK
-            int cantidad
-            numeric costoUnitarioSnapshot
-          }
-
-          SUCURSALES {
-            uuid id PK
-            varchar name
-          }
-      </div>
-    </section>
-
-    <section>
-      <h2>Modulo de Usuarios y Permisos</h2>
-      <p class="note">Vista actual de seguridad. Los permisos siguen en una tabla por rol, sin expandir todas sus columnas en el diagrama.</p>
-      <div class="mermaid">
-        erDiagram
-          TENANTS ||--o{ USERS : tiene
-          TENANTS ||--o{ ROLE_PERMISSIONS : define
-          SUCURSALES ||--o{ USERS : asigna
-
-          TENANTS {
-            uuid id PK
-            varchar name
-            varchar status
-          }
-
-          USERS {
-            uuid id PK
-            uuid tenant_id FK
-            uuid sucursal_id FK
-            varchar name
-            varchar role
-          }
-
-          ROLE_PERMISSIONS {
-            uuid id PK
-            uuid tenant_id FK
-            varchar role
-            boolean permisos_por_modulo
-          }
-
-          SUCURSALES {
-            uuid id PK
-            varchar name
-            boolean isActive
-          }
-      </div>
-    </section>
-  </main>
-
-  <script>
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'base',
-      securityLevel: 'loose',
-      themeVariables: {
-        primaryColor: '#e4f4f5',
-        primaryTextColor: '#172033',
-        primaryBorderColor: '#0f7c86',
-        lineColor: '#537387',
-        secondaryColor: '#f7fafc',
-        tertiaryColor: '#ffffff',
-        fontFamily: 'Segoe UI, Arial, sans-serif'
-      },
-      flowchart: {
-        curve: 'basis',
-        nodeSpacing: 42,
-        rankSpacing: 56
-      },
-      er: {
-        layoutDirection: 'LR',
-        diagramPadding: 18,
-        minEntityWidth: 140,
-        minEntityHeight: 64,
-        entityPadding: 12,
-        fontSize: 13,
-        useMaxWidth: true
+      h2 {
+        margin: 0 0 4px;
+        font-size: 18px;
+        letter-spacing: 0;
       }
-    });
-  </script>
-</body>
+
+      .note {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .mermaid {
+        width: 100%;
+        overflow-x: auto;
+        padding: 12px;
+        background: #fbfcfe;
+        border: 1px solid #e8eef5;
+        border-radius: 8px;
+      }
+
+      .legend {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .legend span {
+        display: block;
+        background: var(--accent-soft);
+        border: 1px solid #c8e7ea;
+        border-radius: 6px;
+        padding: 8px 10px;
+        color: #22575d;
+      }
+
+      @media (max-width: 720px) {
+        main {
+          width: min(100% - 24px, 1180px);
+          padding-top: 24px;
+        }
+
+        section {
+          padding: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Diagrama Limpio de Base de Datos</h1>
+        <p class="subtitle">
+          Vista de presentacion del modelo. Se muestran las relaciones
+          principales del negocio y se omiten lineas tecnicas repetitivas para
+          que el flujo sea facil de explicar.
+        </p>
+      </header>
+
+      <section>
+        <h2>Vista General</h2>
+        <p class="note">
+          Vista completa con todas las tablas del modelo, agrupadas por modulo y
+          con solo las relaciones principales para evitar cruces innecesarios.
+        </p>
+        <div class="mermaid">
+          flowchart LR TENANTS["TENANTS<br />tienda"] subgraph SEG["Seguridad y
+          estructura"] SUCURSALES["SUCURSALES"] USERS["USERS"] ROLES["ROLES"]
+          PERMISSIONS["PERMISSIONS"]
+          ROLE_PERMISSION_ASSIGNMENTS["ROLE_PERMISSION_ASSIGNMENTS"] end
+          subgraph CAT["Catalogo y abastecimiento"] PROVEEDORES["PROVEEDORES"]
+          PRODUCTOS["PRODUCTOS"] LOTES_INGRESO["LOTES_INGRESO"] end subgraph
+          VEN["Ventas"] CLIENTES["CLIENTES"] VENTAS["VENTAS"]
+          VENTA_DETALLES["VENTA_DETALLES"] end subgraph INV["Inventario"]
+          STOCK["STOCK"] AJUSTES_INVENTARIO["AJUSTES_INVENTARIO"]
+          TRANSFERENCIAS_STOCK["TRANSFERENCIAS_STOCK"]
+          MOVIMIENTOS_INVENTARIO["MOVIMIENTOS_INVENTARIO"] end TENANTS -->
+          SUCURSALES SUCURSALES --> USERS ROLES --> USERS TENANTS --> ROLES
+          ROLES --> ROLE_PERMISSION_ASSIGNMENTS PERMISSIONS -->
+          ROLE_PERMISSION_ASSIGNMENTS PROVEEDORES --> PRODUCTOS PRODUCTOS -->
+          LOTES_INGRESO CLIENTES --> VENTAS VENTAS --> VENTA_DETALLES PRODUCTOS
+          --> VENTA_DETALLES PRODUCTOS --> STOCK SUCURSALES --> STOCK
+          LOTES_INGRESO --> STOCK VENTA_DETALLES --> MOVIMIENTOS_INVENTARIO
+          AJUSTES_INVENTARIO --> STOCK TRANSFERENCIAS_STOCK --> STOCK
+          MOVIMIENTOS_INVENTARIO --> STOCK
+        </div>
+        <div class="legend">
+          <span
+            >Incluye las 16 tablas actuales: no es un resumen de 8 tablas.</span
+          >
+          <span
+            >Se omiten varias lineas de tenant_id porque son tecnicas y se
+            repiten en casi todo el modelo.</span
+          >
+        </div>
+      </section>
+
+      <section>
+        <h2>Modulo de Ventas</h2>
+        <p class="note">
+          La venta ya no depende solo de un JSON: ahora llega a productos
+          mediante una tabla intermedia.
+        </p>
+        <div class="mermaid">
+          erDiagram CLIENTES ||--o{ VENTAS : realiza SUCURSALES ||--o{ VENTAS :
+          registra USERS ||--o{ VENTAS : atiende VENTAS ||--o{ VENTA_DETALLES :
+          contiene PRODUCTOS ||--o{ VENTA_DETALLES : vendido_en CLIENTES { uuid
+          id PK varchar nombre varchar documento } VENTAS { uuid id PK uuid
+          cliente_id FK uuid sucursal_id FK uuid vendedor_id FK varchar
+          numeroComprobante numeric total } VENTA_DETALLES { uuid id PK uuid
+          venta_id FK uuid producto_id FK int cantidad numeric
+          precioUnitarioSnapshot numeric subtotal } PRODUCTOS { uuid id PK
+          varchar sku varchar name numeric precioVenta } SUCURSALES { uuid id PK
+          varchar name } USERS { uuid id PK varchar name varchar role }
+        </div>
+      </section>
+
+      <section>
+        <h2>Modulo de Inventario</h2>
+        <p class="note">
+          STOCK funciona como puente entre producto y sucursal. Las operaciones
+          de inventario se conectan a ese saldo para evitar lineas repetidas
+          hacia producto y sucursal.
+        </p>
+        <div class="mermaid">
+          flowchart LR PRODUCTOS["PRODUCTOS"] SUCURSALES["SUCURSALES"]
+          STOCK["STOCK<br />saldo actual"] MOVS["MOVIMIENTOS_INVENTARIO<br />historial
+          / Kardex"] LOTES["LOTES_INGRESO"] DETALLES["VENTA_DETALLES"]
+          AJUSTES["AJUSTES_INVENTARIO"] TRANSF["TRANSFERENCIAS_STOCK"] PRODUCTOS
+          --> STOCK SUCURSALES --> STOCK MOVS --> STOCK LOTES --> STOCK DETALLES
+          --> MOVS AJUSTES --> STOCK TRANSF --> STOCK
+        </div>
+        <div class="legend">
+          <span
+            >Ingreso de mercaderia: LOTES_INGRESO genera movimientos
+            positivos.</span
+          >
+          <span>Venta: VENTA_DETALLES genera movimientos negativos.</span>
+          <span
+            >Ajuste y transferencia: registran correcciones y cambios entre
+            sucursales.</span
+          >
+        </div>
+      </section>
+
+      <section>
+        <h2>Modulo de Abastecimiento</h2>
+        <p class="note">
+          Los proveedores abastecen productos y los lotes registran entradas por
+          sucursal.
+        </p>
+        <div class="mermaid">
+          erDiagram PROVEEDORES ||--o{ PRODUCTOS : provee PROVEEDORES ||--o{
+          LOTES_INGRESO : abastece PRODUCTOS ||--o{ LOTES_INGRESO : ingresa
+          SUCURSALES ||--o{ LOTES_INGRESO : recibe PROVEEDORES { uuid id PK
+          varchar name varchar taxId } PRODUCTOS { uuid id PK uuid proveedor_id
+          FK varchar sku varchar name numeric precioCosto } LOTES_INGRESO { uuid
+          id PK uuid producto_id FK uuid proveedor_id FK uuid sucursal_id FK int
+          cantidad numeric costoUnitarioSnapshot } SUCURSALES { uuid id PK
+          varchar name }
+        </div>
+      </section>
+
+      <section>
+        <h2>Modulo de Usuarios y Permisos</h2>
+        <p class="note">
+          Los permisos ya no viven como columnas booleanas gigantes. Ahora se
+          separan roles, permisos y una tabla intermedia.
+        </p>
+        <div class="mermaid">
+          erDiagram TENANTS ||--o{ ROLES : define ROLES ||--o{ USERS : asigna
+          ROLES ||--o{ ROLE_PERMISSION_ASSIGNMENTS : tiene PERMISSIONS ||--o{
+          ROLE_PERMISSION_ASSIGNMENTS : habilita SUCURSALES ||--o{ USERS :
+          asigna TENANTS { uuid id PK varchar name varchar status } USERS { uuid
+          id PK uuid tenant_id FK uuid sucursal_id FK uuid role_id FK varchar
+          name varchar role } ROLES { uuid id PK uuid tenant_id FK varchar name
+          boolean isSystem } PERMISSIONS { uuid id PK varchar key varchar module
+          varchar action } ROLE_PERMISSION_ASSIGNMENTS { uuid id PK uuid role_id
+          FK uuid permission_id FK boolean enabled } SUCURSALES { uuid id PK
+          varchar name boolean isActive }
+        </div>
+      </section>
+    </main>
+
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        securityLevel: "loose",
+        themeVariables: {
+          primaryColor: "#e4f4f5",
+          primaryTextColor: "#172033",
+          primaryBorderColor: "#0f7c86",
+          lineColor: "#537387",
+          secondaryColor: "#f7fafc",
+          tertiaryColor: "#ffffff",
+          fontFamily: "Segoe UI, Arial, sans-serif",
+        },
+        flowchart: {
+          curve: "basis",
+          nodeSpacing: 42,
+          rankSpacing: 56,
+        },
+        er: {
+          layoutDirection: "LR",
+          diagramPadding: 18,
+          minEntityWidth: 140,
+          minEntityHeight: 64,
+          entityPadding: 12,
+          fontSize: 13,
+          useMaxWidth: true,
+        },
+      });
+    </script>
+  </body>
 </html>

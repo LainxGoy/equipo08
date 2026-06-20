@@ -9,6 +9,7 @@ import {
 import { Sucursal } from '../sucursales/sucursal.entity';
 import { Producto } from '../productos/producto.entity';
 import { User } from '../users/user.entity';
+import { Stock } from '../stock/stock.entity';
 
 export enum MotivoAjuste {
   ROBO_O_PERDIDA = 'ROBO_O_PERDIDA',
@@ -34,6 +35,9 @@ export class AjusteInventario {
   @Column()
   usuario_id: string;
 
+  @Column({ nullable: true })
+  stock_id: string;
+
   @Column('int')
   cantidad_sistema: number;
 
@@ -57,15 +61,19 @@ export class AjusteInventario {
   fecha: Date;
 
 
-  @ManyToOne(() => Sucursal)
+  @ManyToOne(() => Stock, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'stock_id' })
+  stock: Stock;
+
+  @ManyToOne(() => Sucursal, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'sucursal_id' })
   sucursal: Sucursal;
 
-  @ManyToOne(() => Producto)
+  @ManyToOne(() => Producto, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'producto_id' })
   producto: Producto;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'usuario_id' })
   usuario: User;
 }
