@@ -9,6 +9,7 @@ import {
   Index,
 } from 'typeorm';
 import { Sucursal } from '../sucursales/sucursal.entity';
+import { Tenant } from '../tenant/tenant.entity';
 
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
@@ -25,6 +26,10 @@ export class User {
 
   @Column({ nullable: true })
   tenant_id: string;
+
+  @ManyToOne(() => Tenant, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'tenant_id' })
+  tenant: Tenant;
 
   @Column({ nullable: true })
   sucursal_id: string;
