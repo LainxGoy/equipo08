@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { Sucursal } from '../sucursales/sucursal.entity';
 import { Tenant } from '../tenant/tenant.entity';
-import { Role } from './role.entity';
 
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
@@ -55,19 +54,12 @@ export class User {
   })
   role: UserRole;
 
-  @Column('uuid', { nullable: true })
-  role_id: string;
-
   @Column({ default: true })
   isActive: boolean;
 
   @ManyToOne(() => Sucursal, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'sucursal_id' })
   sucursal: Sucursal;
-
-  @ManyToOne(() => Role, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'role_id' })
-  roleRecord: Role;
 
   @CreateDateColumn()
   createdAt: Date;

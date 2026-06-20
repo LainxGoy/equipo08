@@ -27,9 +27,6 @@ import { Stock } from './stock/stock.entity';
 import { MovimientoInventario } from './stock/movimiento-inventario.entity';
 import { TransferenciaStock } from './stock/transferencia-stock.entity';
 import { User } from './users/user.entity';
-import { Role } from './users/role.entity';
-import { Permission } from './users/permission.entity';
-import { RolePermissionAssignment } from './users/role-permission-assignment.entity';
 import { AjusteInventario } from './ajustes/ajuste.entity';
 import { Venta } from './ventas/venta.entity';
 import { VentaDetalle } from './ventas/venta-detalle.entity';
@@ -64,9 +61,6 @@ const shouldSynchronizeDatabase =
         TransferenciaStock,
         Sucursal,
         User,
-        Role,
-        Permission,
-        RolePermissionAssignment,
         AjusteInventario,
         Venta,
         VentaDetalle,
