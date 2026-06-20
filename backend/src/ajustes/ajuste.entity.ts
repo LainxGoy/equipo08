@@ -65,15 +65,15 @@ export class AjusteInventario {
   @JoinColumn({ name: 'stock_id' })
   stock: Stock;
 
-  @ManyToOne(() => Sucursal, { createForeignKeyConstraints: false })
+  @ManyToOne(() => Sucursal, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'sucursal_id' })
   sucursal: Sucursal;
 
-  @ManyToOne(() => Producto, { createForeignKeyConstraints: false })
+  @ManyToOne(() => Producto, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'producto_id' })
   producto: Producto;
 
-  @ManyToOne(() => User, { createForeignKeyConstraints: false })
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'usuario_id' })
   usuario: User;
 }
