@@ -38,6 +38,12 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { PermissionsGuard } from './auth/guards/permissions.guard';
 
+const shouldSynchronizeDatabase =
+  process.env.DB_SYNCHRONIZE === 'true' ||
+  (process.env.DB_SYNCHRONIZE !== 'false' &&
+    process.env.NODE_ENV !== 'production' &&
+    !process.env.RENDER);
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -65,7 +71,7 @@ import { PermissionsGuard } from './auth/guards/permissions.guard';
         Venta,
         VentaDetalle,
       ],
-      synchronize: true,
+      synchronize: shouldSynchronizeDatabase,
       ssl:
         process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
