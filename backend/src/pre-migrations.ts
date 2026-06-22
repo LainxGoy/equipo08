@@ -152,7 +152,7 @@ export async function runPreMigrations() {
       WHERE table_name = 'ajustes_inventario' AND column_name = 'producto_id'
     `);
 
-    let pendingAjustes = { rows: [] };
+    let pendingAjustes: { rows: any[] } = { rows: [] };
     if (checkSucursalCol.rowCount > 0 && checkProductoCol.rowCount > 0) {
       pendingAjustes = await client.query(`
         SELECT id, tenant_id, sucursal_id, producto_id 
