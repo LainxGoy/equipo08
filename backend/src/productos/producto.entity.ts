@@ -40,13 +40,13 @@ export class Producto {
   @Column({ type: 'text', nullable: true })
   imagen_url: string;
 
-  @Column('int', { default: 10 })
+  @Column('int', { name: 'stock_minimo', default: 10 })
   stockMinimo: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column('decimal', { name: 'precio_costo', precision: 10, scale: 2, default: 0 })
   precioCosto: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column('decimal', { name: 'precio_venta', precision: 10, scale: 2, default: 0 })
   precioVenta: number;
 
   @Column({ nullable: true })
@@ -56,10 +56,10 @@ export class Producto {
   @JoinColumn({ name: 'proveedor_id' })
   proveedor: Proveedor;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
   @OneToMany(() => Stock, (stock) => stock.producto)

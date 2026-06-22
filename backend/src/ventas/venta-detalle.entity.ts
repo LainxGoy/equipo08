@@ -27,19 +27,19 @@ export class VentaDetalle {
   @Column()
   producto_id: string;
 
-  @Column()
+  @Column({ name: 'sku_snapshot' })
   skuSnapshot: string;
 
-  @Column()
+  @Column({ name: 'nombre_producto_snapshot' })
   nombreProductoSnapshot: string;
 
   @Column('int')
   cantidad: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  @Column('decimal', { name: 'precio_unitario_snapshot', precision: 12, scale: 2, default: 0 })
   precioUnitarioSnapshot: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  @Column('decimal', { name: 'costo_unitario_snapshot', precision: 12, scale: 2, default: 0 })
   costoUnitarioSnapshot: number;
 
   subtotal: number;
@@ -56,7 +56,7 @@ export class VentaDetalle {
   @JoinColumn({ name: 'producto_id' })
   producto: Producto;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @AfterLoad()

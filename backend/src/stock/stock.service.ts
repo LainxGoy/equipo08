@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Stock } from './stock.entity';
+import { MovimientoInventario } from './movimiento-inventario.entity';
 
 @Injectable()
 export class StockService {
@@ -31,6 +32,8 @@ export class StockService {
     producto_id: string,
     cantidad: number,
     valorAdquisicionDelta: number = 0,
+    tipo: string = 'AJUSTE',
+    motivo?: string,
   ): Promise<Stock> {
     return this.applyStockDelta(
       this.stockRep.manager,
@@ -39,6 +42,8 @@ export class StockService {
       producto_id,
       cantidad,
       valorAdquisicionDelta,
+      tipo,
+      motivo,
     );
   }
 
@@ -49,13 +54,20 @@ export class StockService {
     producto_id: string,
     cantidad: number,
     valorAdquisicionDelta: number = 0,
+    tipo: string = 'AJUSTE',
+    motivo?: string,
+    existingStock?: Stock,
   ): Promise<Stock> {
-    const stockRep = manager.getRepository(Stock);
-    let stock = await stockRep.findOne({
+    let stock = existingStock || await manager.findOne(Stock, {
       where: { tenant_id, sucursal_id, producto_id },
     });
+
+    const costBefore = stock && stock.cantidadTotal > 0
+      ? Number(stock.valorAdquisicion || 0) / stock.cantidadTotal
+      : 0;
+
     if (!stock) {
-      stock = stockRep.create({
+      stock = manager.create(Stock, {
         tenant_id,
         sucursal_id,
         producto_id,
@@ -69,7 +81,21 @@ export class StockService {
         Number(stock.valorAdquisicion || 0) +
         Number(valorAdquisicionDelta || 0);
     }
-    return stockRep.save(stock);
+    const savedStock = await manager.save(Stock, stock);
+
+    // Registrar movimiento de inventario
+    const unitCost = costBefore || (cantidad !== 0 ? Math.abs(Number(valorAdquisicionDelta)) / Math.abs(cantidad) : 0);
+    const movimiento = manager.create(MovimientoInventario, {
+      tenant_id,
+      stock_id: savedStock?.id || stock.id || 'mock-stock-id',
+      tipo,
+      cantidad,
+      costoUnitario: unitCost,
+      motivo,
+    });
+    await manager.save(MovimientoInventario, movimiento);
+
+    return savedStock;
   }
 
   async getStockByTenant(tenant_id: string): Promise<Stock[]> {
@@ -123,33 +149,37 @@ export class StockService {
           : 0;
       const transferredValue = avgCost * cantidad;
 
-      // Descontar de origen
-      sourceStock.cantidadTotal = Number(sourceStock.cantidadTotal) - cantidad;
-      sourceStock.valorAdquisicion =
-        Number(sourceStock.valorAdquisicion) - transferredValue;
-      await queryRunner.manager.save(Stock, sourceStock);
+      // Descontar de origen utilizando applyStockDelta para auditoría
+      await this.applyStockDelta(
+        queryRunner.manager,
+        tenant_id,
+        from_sucursal_id,
+        producto_id,
+        -cantidad,
+        -transferredValue,
+        'TRANSFERENCIA',
+        `Transferencia salida a sucursal ${to_sucursal_id}`,
+        sourceStock,
+      );
 
       // Bloquear/Crear registro destino
-      let targetStock = await queryRunner.manager.findOne(Stock, {
+      const targetStock = await queryRunner.manager.findOne(Stock, {
         where: { tenant_id, sucursal_id: to_sucursal_id, producto_id },
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (!targetStock) {
-        targetStock = queryRunner.manager.create(Stock, {
-          tenant_id,
-          sucursal_id: to_sucursal_id,
-          producto_id,
-          cantidadTotal: cantidad,
-          valorAdquisicion: transferredValue,
-        });
-      } else {
-        targetStock.cantidadTotal =
-          Number(targetStock.cantidadTotal || 0) + cantidad;
-        targetStock.valorAdquisicion =
-          Number(targetStock.valorAdquisicion || 0) + transferredValue;
-      }
-      await queryRunner.manager.save(Stock, targetStock);
+      // Incrementar en destino utilizando applyStockDelta para auditoría
+      await this.applyStockDelta(
+        queryRunner.manager,
+        tenant_id,
+        to_sucursal_id,
+        producto_id,
+        cantidad,
+        transferredValue,
+        'TRANSFERENCIA',
+        `Transferencia entrada desde sucursal ${from_sucursal_id}`,
+        targetStock || undefined,
+      );
 
       await queryRunner.commitTransaction();
     } catch (err) {

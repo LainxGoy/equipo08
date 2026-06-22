@@ -129,8 +129,8 @@ describe('StockService (Prueba Unitaria)', () => {
       expect(targetStock.cantidadTotal).toBe(7);
       expect(targetStock.valorAdquisicion).toBe(70); // 20 + 50 = 70
 
-      // Guardados en la transacción: origen, destino (2 guardados)
-      expect(managerMock.save).toHaveBeenCalledTimes(2);
+      // Guardados en la transacción: 2 stocks + 2 movimientos de inventario (4 guardados)
+      expect(managerMock.save).toHaveBeenCalledTimes(4);
       expect(queryRunnerMock.commitTransaction).toHaveBeenCalled();
       expect(queryRunnerMock.release).toHaveBeenCalled();
     });

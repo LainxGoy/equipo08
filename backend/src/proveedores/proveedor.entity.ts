@@ -19,15 +19,15 @@ export class Proveedor {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'contact_email', nullable: true })
   contactEmail: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'tax_id', nullable: true })
   taxId: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

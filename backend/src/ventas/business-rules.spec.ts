@@ -3,6 +3,7 @@ import { JwtStrategy } from '../auth/jwt.strategy';
 import { AuthService } from '../auth/auth.service';
 import { VentasService } from './ventas.service';
 import { TenantStatus } from '../tenant/tenant.entity';
+import { Stock } from '../stock/stock.entity';
 
 describe('Sistema BolClick - Pruebas Unitarias de Reglas de Negocio y Servicios', () => {
   // MÓDULO 1: REGLAS DE NEGOCIO DE VENTAS E INVENTARIO (VentasService)
@@ -34,7 +35,9 @@ describe('Sistema BolClick - Pruebas Unitarias de Reglas de Negocio y Servicios'
         }),
       };
       mockProductoRep = {};
-      mockStockService = {};
+      mockStockService = {
+        applyStockDelta: jest.fn(),
+      };
       mockDataSource = {
         createQueryRunner: jest.fn().mockReturnValue({
           connect: jest.fn(),
@@ -137,6 +140,15 @@ describe('Sistema BolClick - Pruebas Unitarias de Reglas de Negocio y Servicios'
       runner.manager.count.mockResolvedValue(0); // Para generar número de factura
       runner.manager.create.mockReturnValue(mockSavedVenta);
       runner.manager.save.mockResolvedValue(mockSavedVenta);
+      mockStockService.applyStockDelta.mockImplementation(
+        async (manager, tenant_id, sucursal_id, producto_id, cantidad, valorDelta) => {
+          mockStock.cantidadTotal += cantidad;
+          mockStock.valorAdquisicion += valorDelta;
+          await manager.save(Stock, mockStock);
+          return mockStock;
+        }
+      );
+
       const dto = {
         sucursal_id: 'branch-1',
         clienteNombre: 'Carlos',

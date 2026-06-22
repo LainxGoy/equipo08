@@ -95,4 +95,10 @@ export class VentasController {
     const fileStream = fs.createReadStream(pdfPath);
     fileStream.pipe(res);
   }
+
+  @Post(':id/anular')
+  @RequirePermission('ventas.crear')
+  async anular(@Param('id') id: string, @TenantId() tenant_id: string) {
+    return this.ventasService.anular(tenant_id, id);
+  }
 }

@@ -25,13 +25,13 @@ export class Stock {
   @Column()
   producto_id: string;
 
-  @Column('int', { default: 0 })
+  @Column('int', { name: 'cantidad_total', default: 0 })
   cantidadTotal: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  @Column('decimal', { name: 'valor_adquisicion', precision: 12, scale: 2, default: 0 })
   valorAdquisicion: number;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'ultima_actualizacion' })
   ultimaActualizacion: Date;
 
   @ManyToOne(() => Producto)

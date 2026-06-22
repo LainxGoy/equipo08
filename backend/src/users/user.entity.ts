@@ -43,8 +43,8 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ name: 'password_hash' })
+  passwordHash: string;
 
   @Column({
     type: 'enum',
@@ -53,16 +53,16 @@ export class User {
   })
   role: UserRole;
 
-  @Column({ default: true })
+  @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
   @ManyToOne(() => Sucursal, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'sucursal_id' })
   sucursal: Sucursal;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

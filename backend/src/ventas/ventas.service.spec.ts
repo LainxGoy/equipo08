@@ -28,7 +28,9 @@ describe('VentasService (Prueba Unitarias Sencilla)', () => {
         },
         {
           provide: StockService,
-          useValue: {},
+          useValue: {
+            applyStockDelta: jest.fn().mockResolvedValue({ id: 'mock-stock-id', cantidadTotal: 5 }),
+          },
         },
         {
           provide: DataSource,

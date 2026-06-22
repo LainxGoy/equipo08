@@ -24,6 +24,7 @@ import { Producto } from './productos/producto.entity';
 import { Sucursal } from './sucursales/sucursal.entity';
 import { LoteIngreso } from './sourcing/lote-ingreso.entity';
 import { Stock } from './stock/stock.entity';
+import { MovimientoInventario } from './stock/movimiento-inventario.entity';
 import { User } from './users/user.entity';
 import { AjusteInventario } from './ajustes/ajuste.entity';
 import { Venta } from './ventas/venta.entity';
@@ -55,6 +56,7 @@ const shouldSynchronizeDatabase =
         Producto,
         LoteIngreso,
         Stock,
+        MovimientoInventario,
         Sucursal,
         User,
         AjusteInventario,

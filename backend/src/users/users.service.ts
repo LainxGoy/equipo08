@@ -131,9 +131,10 @@ export class UsersService {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(dto.password, salt);
 
+    const { password, ...userData } = dto;
     const newUser = this.userRep.create({
-      ...dto,
-      password: hashedPassword,
+      ...userData,
+      passwordHash: hashedPassword,
       tenant_id,
     });
 
@@ -205,14 +206,14 @@ export class UsersService {
       );
     }
 
-    if (dto.password && dto.password.trim() !== '') {
+    const { password, ...updateData } = dto;
+    Object.assign(user, updateData);
+
+    if (password && password.trim() !== '') {
       const salt = await bcrypt.genSalt();
-      dto.password = await bcrypt.hash(dto.password, salt);
-    } else {
-      delete dto.password;
+      user.passwordHash = await bcrypt.hash(password, salt);
     }
 
-    Object.assign(user, dto);
     return this.userRep.save(user);
   }
 

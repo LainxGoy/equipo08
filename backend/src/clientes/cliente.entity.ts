@@ -30,16 +30,16 @@ export class Cliente {
   @Column({ nullable: true })
   telefono: string;
 
-  @Column({ default: true })
+  @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
 
   @OneToMany(() => Venta, (venta) => venta.cliente)
   ventas: Venta[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

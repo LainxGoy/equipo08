@@ -51,7 +51,6 @@ export class AuthService {
         name: dto.name,
         domain: dto.domain,
         email: dto.email,
-        password: hashedPassword,
         phone: dto.phone,
         ubicacion: dto.ubicacion,
         nit: dto.nit,
@@ -64,7 +63,7 @@ export class AuthService {
       const user = queryRunner.manager.create(User, {
         name: 'Administrador',
         email: dto.email,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         role: UserRole.OWNER,
         tenant_id: savedTenant.id,
       });
@@ -103,41 +102,13 @@ export class AuthService {
     });
 
     if (!user) {
-      // 2. MIGRACIÓN LEGACY: Buscar si existe un Tenant viejo sin un User asociado
-      const legacyTenant = await this.dataSource.getRepository(Tenant).findOne({
-        where: { email: dto.email },
-      });
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
 
-      if (!legacyTenant) {
-        throw new UnauthorizedException('Credenciales inválidas');
-      }
-
-      const isLegacyMatch = await bcrypt.compare(
-        dto.password,
-        legacyTenant.password,
-      );
-      if (!isLegacyMatch) {
-        throw new UnauthorizedException('Credenciales inválidas');
-      }
-
-      // Si las credenciales son correctas pero no tenía User, MIGRARLO automáticamente
-      user = this.dataSource.getRepository(User).create({
-        name: legacyTenant.name, // Usamos el nombre del tenant como nombre del owner legacy
-        email: legacyTenant.email,
-        password: legacyTenant.password,
-        role: UserRole.OWNER,
-        tenant_id: legacyTenant.id,
-      });
-      await this.dataSource.getRepository(User).save(user);
-
-      // Crear permisos base para el tenant
-      await this.usersService.seedDefaultPermissions(legacyTenant.id);
-    } else {
-      // Flujo Normal: Verificar password del User
-      const isMatch = await bcrypt.compare(dto.password, user.password);
-      if (!isMatch) {
-        throw new UnauthorizedException('Credenciales inválidas');
-      }
+    // Flujo Normal: Verificar password del User
+    const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!isMatch) {
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
     if (!user.isActive) {

@@ -13,9 +13,7 @@ export class TenantService {
   async getProfile(tenantId: string) {
     const tenant = await this.tenantRepo.findOne({ where: { id: tenantId } });
     if (!tenant) throw new NotFoundException('Tienda no encontrada');
-    // Remove password
-    const { password, ...safeTenant } = tenant;
-    return safeTenant;
+    return tenant;
   }
 
   async updateProfile(
@@ -38,7 +36,6 @@ export class TenantService {
     if (data.brandColor !== undefined) tenant.brandColor = data.brandColor;
 
     const updated = await this.tenantRepo.save(tenant);
-    const { password, ...safeTenant } = updated;
-    return safeTenant;
+    return updated;
   }
 }

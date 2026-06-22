@@ -32,16 +32,16 @@ export class LoteIngreso {
   @Column('int')
   cantidad: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column('decimal', { name: 'costo_unitario_snapshot', precision: 10, scale: 2, default: 0 })
   costoUnitarioSnapshot: number;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'fecha_elaboracion', type: 'date', nullable: true })
   fechaElaboracion: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'fecha_vencimiento', type: 'date', nullable: true })
   fechaVencimiento: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'fecha_ingreso' })
   fechaIngreso: Date;
 
   @ManyToOne(() => Producto)

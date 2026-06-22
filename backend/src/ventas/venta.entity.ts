@@ -33,48 +33,40 @@ export class Venta {
   @Column({ nullable: true })
   vendedor_id: string;
 
-  @Column()
+  @Column({ name: 'numero_comprobante' })
   numeroComprobante: string;
 
-  @Column()
+  @Column({ name: 'cliente_name' }) // Map to database snake_case or clean name
   clienteNombre: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'cliente_documento', nullable: true })
   clienteDocumento: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'fecha' })
   fecha: Date;
 
-  @Column('jsonb')
-  detalle: Array<{
-    producto_id: string;
-    sku: string;
-    name: string;
-    cantidad: number;
-    precioUnitario: number;
-    costoUnitario?: number;
-    subtotal: number;
-  }>;
+  @Column({ type: 'varchar', default: 'COMPLETADA' })
+  estado: string; // 'COMPLETADA', 'ANULADA'
 
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   total: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  @Column('decimal', { precision: 12, scale: 2, name: 'costo_total', default: 0 })
   costoTotal: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  @Column('decimal', { precision: 12, scale: 2, name: 'utilidad_total', default: 0 })
   utilidadTotal: number;
 
-  @Column({ default: 'Efectivo' })
+  @Column({ name: 'metodo_pago', default: 'Efectivo' })
   metodoPago: string;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  @Column('decimal', { precision: 12, scale: 2, name: 'monto_recibido', default: 0 })
   montoRecibido: number;
 
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   cambio: number;
 
-  @Column({ nullable: true })
+  @Column({ name: 'vendedor_nombre', nullable: true })
   vendedorNombre: string;
 
   @ManyToOne(() => Sucursal)
@@ -94,4 +86,14 @@ export class Venta {
 
   @OneToMany(() => VentaDetalle, (detalle) => detalle.venta)
   detalles: VentaDetalle[];
+
+  detalle?: Array<{
+    producto_id: string;
+    sku: string;
+    name: string;
+    cantidad: number;
+    precioUnitario: number;
+    costoUnitario?: number;
+    subtotal: number;
+  }>;
 }

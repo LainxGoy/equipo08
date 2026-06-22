@@ -70,6 +70,12 @@ export class VentasService {
     await queryRunner.startTransaction();
 
     try {
+      const count = await queryRunner.manager.count(Venta, {
+        where: { tenant_id, sucursal_id: dto.sucursal_id },
+      });
+      const nextNum = (count + 1).toString().padStart(6, '0');
+      const numeroComprobante = `FAC-${nextNum}`;
+
       const detalle: ProcessedVentaItem[] = [];
       let total = 0;
       let costoTotal = 0;
@@ -107,9 +113,16 @@ export class VentasService {
         total += subtotal;
         costoTotal += costoSubtotal;
 
-        stock.cantidadTotal = Number(stock.cantidadTotal) - item.cantidad;
-        stock.valorAdquisicion = Number(stock.valorAdquisicion) - costoSubtotal;
-        await queryRunner.manager.save(Stock, stock);
+        const updatedStock = await this.stockService.applyStockDelta(
+          queryRunner.manager,
+          tenant_id,
+          dto.sucursal_id,
+          producto.id,
+          -item.cantidad,
+          -costoSubtotal,
+          'EGRESO',
+          `Venta ${numeroComprobante}`,
+        );
 
         detalle.push({
           producto_id: producto.id,
@@ -118,12 +131,12 @@ export class VentasService {
           cantidad: item.cantidad,
           precioUnitario,
           costoUnitario,
-          stock_id: stock.id,
+          stock_id: updatedStock.id,
           subtotal,
           costoSubtotal,
           utilidadSubtotal,
-          stockResultante: stock.cantidadTotal,
-          valorResultante: Number(stock.valorAdquisicion),
+          stockResultante: updatedStock.cantidadTotal,
+          valorResultante: Number(updatedStock.valorAdquisicion),
         });
       }
 
@@ -134,11 +147,6 @@ export class VentasService {
         dto.clienteDocumento,
       );
 
-      const count = await queryRunner.manager.count(Venta, {
-        where: { tenant_id, sucursal_id: dto.sucursal_id },
-      });
-      const nextNum = (count + 1).toString().padStart(6, '0');
-      const numeroComprobante = `FAC-${nextNum}`;
       const utilidadTotal = total - costoTotal;
 
       const venta = queryRunner.manager.create(Venta, {
@@ -149,7 +157,6 @@ export class VentasService {
         numeroComprobante,
         clienteNombre: dto.clienteNombre,
         clienteDocumento: dto.clienteDocumento,
-        detalle,
         total,
         costoTotal,
         utilidadTotal,
@@ -297,7 +304,7 @@ export class VentasService {
       doc.font('Helvetica');
       let currentY = tableTop + 25;
 
-      venta.detalle.forEach((item) => {
+      (venta.detalle || []).forEach((item) => {
         doc.text(item.cantidad.toString(), 50, currentY);
         doc.text(`${item.name}`, 100, currentY, { width: 240 });
         doc.text(Number(item.precioUnitario).toFixed(2), 350, currentY, {
@@ -422,6 +429,50 @@ export class VentasService {
       documento,
     });
     return manager.save(Cliente, nuevoCliente);
+  }
+
+  async anular(tenant_id: string, id: string): Promise<Venta> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const venta = await queryRunner.manager.findOne(Venta, {
+        where: { id, tenant_id },
+        relations: ['detalles'],
+      });
+
+      if (!venta) throw new NotFoundException('Venta no encontrada');
+      if (venta.estado === 'ANULADA') {
+        throw new BadRequestException('La venta ya se encuentra anulada');
+      }
+
+      venta.estado = 'ANULADA';
+      const savedVenta = await queryRunner.manager.save(Venta, venta);
+
+      // Revertir el stock para cada detalle de la venta
+      for (const detail of venta.detalles) {
+        const cost = Number(detail.costoUnitarioSnapshot || 0) * Number(detail.cantidad);
+        await this.stockService.applyStockDelta(
+          queryRunner.manager,
+          tenant_id,
+          venta.sucursal_id,
+          detail.producto_id,
+          detail.cantidad,
+          cost,
+          'ANULACION',
+          `Anulación de venta ${venta.numeroComprobante}`,
+        );
+      }
+
+      await queryRunner.commitTransaction();
+      return this.hydrateLegacyDetalle(savedVenta);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   private hydrateLegacyDetalle(venta: Venta): Venta {
