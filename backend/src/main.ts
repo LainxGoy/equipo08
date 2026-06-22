@@ -5,8 +5,12 @@ import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import { join } from 'path';
 import * as fs from 'fs';
+import { runPreMigrations } from './pre-migrations';
 
 async function bootstrap() {
+  // Ejecutar migraciones previas a la sincronización de base de datos
+  await runPreMigrations();
+
   const app = await NestFactory.create(AppModule);
 
   // Asegurar la existencia del directorio uploads
