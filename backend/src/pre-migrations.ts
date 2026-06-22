@@ -190,11 +190,16 @@ export async function runPreMigrations() {
       console.log(`Pre-migration: Associated stock_id ${stockId} with ajuste_inventario ${row.id}`);
     }
 
-    // Clean up any stray ajustes_inventario records that still have null stock_id (because they were skipped due to corrupt data)
-    // Otherwise TypeORM will crash on ALTER TABLE ALTER COLUMN stock_id SET NOT NULL
-    const cleanRes = await client.query('DELETE FROM ajustes_inventario WHERE stock_id IS NULL');
-    if (cleanRes.rowCount > 0) {
-      console.log(`Pre-migration: Deleted ${cleanRes.rowCount} orphan/corrupt records from ajustes_inventario to enforce NOT NULL constraint.`);
+    // Clean up any stray ajustes_inventario records that still have null stock_id (because they were skipped due to corrupt data, or were empty strings)
+    // Also delete any record where stock_id is not present in stock table to avoid foreign key violations.
+    const cleanNulls = await client.query("DELETE FROM ajustes_inventario WHERE stock_id IS NULL OR CAST(stock_id AS text) = ''");
+    if (cleanNulls.rowCount > 0) {
+      console.log(`Pre-migration: Deleted ${cleanNulls.rowCount} records with null/empty stock_id from ajustes_inventario.`);
+    }
+
+    const cleanOrphans = await client.query("DELETE FROM ajustes_inventario WHERE stock_id NOT IN (SELECT id FROM stock)");
+    if (cleanOrphans.rowCount > 0) {
+      console.log(`Pre-migration: Deleted ${cleanOrphans.rowCount} records from ajustes_inventario because their stock_id did not exist in stock table.`);
     }
 
     // Drop redundant proveedor_id from lotes_ingreso (proveedor goes via producto)
