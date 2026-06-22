@@ -163,6 +163,14 @@ export async function runPreMigrations() {
         continue;
       }
 
+      // Check if product exists in database first
+      const prodCheck = await client.query('SELECT id FROM productos WHERE id = $1', [productoId]);
+      if (prodCheck.rowCount === 0) {
+        console.warn(`Pre-migration warning: Product ${productoId} does not exist for ajuste ${row.id}. Deleting adjustment record.`);
+        await client.query('DELETE FROM ajustes_inventario WHERE id = $1', [row.id]);
+        continue;
+      }
+
       // Find matching stock id
       const stockRes = await client.query(`
         SELECT id FROM stock 
@@ -237,7 +245,8 @@ export async function runPreMigrations() {
 
     console.log('Pre-startup migrations completed successfully.');
   } catch (error) {
-    console.error('Error running pre-startup migrations:', error);
+    console.error('CRITICAL: Error running pre-startup migrations:', error);
+    throw error; // Propagate error so application startup fails and does not attempt DB synchronization in a corrupted state
   } finally {
     await client.end();
   }
