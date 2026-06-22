@@ -8,9 +8,7 @@ import {
   JoinColumn,
   Check,
 } from 'typeorm';
-import { Producto } from '../productos/producto.entity';
-import { Sucursal } from '../sucursales/sucursal.entity';
-
+import { Stock } from '../stock/stock.entity';
 import { User } from '../users/user.entity';
 
 @Entity('lotes_ingreso')
@@ -24,11 +22,8 @@ export class LoteIngreso {
   @Column()
   tenant_id: string;
 
-  @Column({ nullable: true })
-  sucursal_id: string;
-
   @Column()
-  producto_id: string;
+  stock_id: string;
 
   @Column('int')
   cantidad: number;
@@ -48,13 +43,9 @@ export class LoteIngreso {
   @CreateDateColumn({ name: 'fecha_ingreso' })
   fechaIngreso: Date;
 
-  @ManyToOne(() => Producto, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'producto_id' })
-  producto: Producto;
-
-  @ManyToOne(() => Sucursal, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'sucursal_id' })
-  sucursal: Sucursal;
+  @ManyToOne(() => Stock, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'stock_id' })
+  stock: Stock;
 
   @ManyToOne(() => User, { createForeignKeyConstraints: false, nullable: true })
   @JoinColumn({ name: 'usuario_id' })

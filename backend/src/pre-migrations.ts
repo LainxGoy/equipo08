@@ -228,9 +228,104 @@ export async function runPreMigrations() {
     console.log('Pre-migration: Altering ajustes_inventario.stock_id to SET NOT NULL...');
     await client.query('ALTER TABLE "ajustes_inventario" ALTER COLUMN "stock_id" SET NOT NULL');
 
-    // Drop redundant proveedor_id from lotes_ingreso (proveedor goes via producto)
+    // Check if stock_id column exists in lotes_ingreso. 
+    // If it doesn't exist, we add it as a nullable column first so we can populate it.
+    const checkLoteStockIdCol = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'lotes_ingreso' AND column_name = 'stock_id'
+    `);
+    if (checkLoteStockIdCol.rowCount === 0) {
+      console.log('Pre-migration: Adding temporary nullable stock_id to lotes_ingreso...');
+      await client.query('ALTER TABLE "lotes_ingreso" ADD COLUMN "stock_id" uuid NULL');
+    }
+
+    // Only attempt to populate stock_id if sucursal_id and producto_id columns still exist in the database table
+    const checkLoteSucursalCol = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'lotes_ingreso' AND column_name = 'sucursal_id'
+    `);
+    const checkLoteProductoCol = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'lotes_ingreso' AND column_name = 'producto_id'
+    `);
+
+    let pendingLotes: { rows: any[] } = { rows: [] };
+    if (checkLoteSucursalCol.rowCount > 0 && checkLoteProductoCol.rowCount > 0) {
+      pendingLotes = await client.query(`
+        SELECT id, tenant_id, sucursal_id, producto_id 
+        FROM lotes_ingreso 
+        WHERE stock_id IS NULL
+      `);
+    }
+
+    for (const row of pendingLotes.rows) {
+      let tenantId = row.tenant_id;
+      if (!tenantId) {
+        const anyTenant = await client.query('SELECT id FROM tenants LIMIT 1');
+        tenantId = anyTenant.rowCount > 0 ? anyTenant.rows[0].id : null;
+      }
+      const sucursalId = row.sucursal_id || null;
+      const productoId = row.producto_id;
+
+      if (!tenantId || !productoId) {
+        continue;
+      }
+
+      // Check if product exists in database first
+      const prodCheck = await client.query('SELECT id FROM productos WHERE id = $1', [productoId]);
+      if (prodCheck.rowCount === 0) {
+        console.warn(`Pre-migration warning: Product ${productoId} does not exist for lote ${row.id}. Deleting lote record.`);
+        await client.query('DELETE FROM lotes_ingreso WHERE id = $1', [row.id]);
+        continue;
+      }
+
+      // Find matching stock id
+      const stockRes = await client.query(`
+        SELECT id FROM stock 
+        WHERE tenant_id = $1 AND (sucursal_id = $2 OR (sucursal_id IS NULL AND $2 IS NULL)) AND producto_id = $3
+      `, [tenantId, sucursalId, productoId]);
+
+      let stockId = '';
+      if (stockRes.rowCount > 0) {
+        stockId = stockRes.rows[0].id;
+      } else {
+        // Create stock record dynamically to keep database integrity
+        const insertStock = await client.query(`
+          INSERT INTO stock (id, tenant_id, sucursal_id, producto_id, cantidad_actual, costo_promedio, ultima_actualizacion)
+          VALUES (gen_random_uuid(), $1, $2, $3, 0, 0, NOW())
+          RETURNING id
+        `, [tenantId, sucursalId, productoId]);
+        stockId = insertStock.rows[0].id;
+      }
+
+      await client.query(`
+        UPDATE lotes_ingreso 
+        SET stock_id = $1 
+        WHERE id = $2
+      `, [stockId, row.id]);
+      console.log(`Pre-migration: Associated stock_id ${stockId} with lote_ingreso ${row.id}`);
+    }
+
+    // Clean up any stray lotes_ingreso records that still have null stock_id
+    const cleanLoteNulls = await client.query("DELETE FROM lotes_ingreso WHERE stock_id IS NULL OR CAST(stock_id AS text) = ''");
+    if (cleanLoteNulls.rowCount > 0) {
+      console.log(`Pre-migration: Deleted ${cleanLoteNulls.rowCount} records with null/empty stock_id from lotes_ingreso.`);
+    }
+
+    const cleanLoteOrphans = await client.query("DELETE FROM lotes_ingreso WHERE stock_id NOT IN (SELECT id FROM stock)");
+    if (cleanLoteOrphans.rowCount > 0) {
+      console.log(`Pre-migration: Deleted ${cleanLoteOrphans.rowCount} records from lotes_ingreso because their stock_id did not exist in stock table.`);
+    }
+
+    // Force stock_id to NOT NULL directly via postgres
+    console.log('Pre-migration: Altering lotes_ingreso.stock_id to SET NOT NULL...');
+    await client.query('ALTER TABLE "lotes_ingreso" ALTER COLUMN "stock_id" SET NOT NULL');
+
+    // Drop redundant proveedor_id and columns from lotes_ingreso / ajustes_inventario
     const dropCols = [
       ['lotes_ingreso', 'proveedor_id'],
+      ['lotes_ingreso', 'producto_id'],
+      ['lotes_ingreso', 'sucursal_id'],
       ['ajustes_inventario', 'producto_id'],
       ['ajustes_inventario', 'sucursal_id'],
     ];

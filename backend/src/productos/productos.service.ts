@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, ILike, IsNull, DataSource } from 'typeorm';
+import { Repository, Not, ILike, IsNull, DataSource, In } from 'typeorm';
 import { Producto } from './producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { LoteIngreso } from '../sourcing/lote-ingreso.entity';
@@ -123,22 +123,24 @@ export class ProductosService {
     const prod = await this.prodRep.findOne({ where: { id, tenant_id } });
     if (!prod) throw new NotFoundException('Producto no encontrado');
 
-    // Check if there are any active batch history (lotes)
-    const lotesCount = await this.dataSource.getRepository(LoteIngreso).count({
-      where: { producto_id: id },
-    });
-    if (lotesCount > 0) {
-      throw new BadRequestException(
-        'No se puede eliminar el producto porque tiene un historial de lotes de ingreso registrado.',
-      );
-    }
-
-    // Check if there are any inventory adjustments (via stock records)
+    // Check if there are any active batch history (lotes) via stock records
     const stockRecords = await this.dataSource.getRepository(Stock).find({
       where: { producto_id: id },
       select: ['id'],
     });
     const stockIds = stockRecords.map(s => s.id);
+    if (stockIds.length > 0) {
+      const lotesCount = await this.dataSource.getRepository(LoteIngreso).count({
+        where: { stock_id: In(stockIds) as any },
+      });
+      if (lotesCount > 0) {
+        throw new BadRequestException(
+          'No se puede eliminar el producto porque tiene un historial de lotes de ingreso registrado.',
+        );
+      }
+    }
+
+    // Check if there are any inventory adjustments (via stock records)
     if (stockIds.length > 0) {
       const ajustesCount = await this.dataSource
         .getRepository(AjusteInventario)

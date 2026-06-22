@@ -1,15 +1,12 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { LoteIngreso } from './lote-ingreso.entity';
 import { CreateLoteIngresoDto } from './dto/create-lote.dto';
-import { Producto } from '../productos/producto.entity';
-import { Sucursal } from '../sucursales/sucursal.entity';
+import { Stock } from '../stock/stock.entity';
 import { StockService } from '../stock/stock.service';
+import { Sucursal } from '../sucursales/sucursal.entity';
+import { Producto } from '../productos/producto.entity';
 
 @Injectable()
 export class SourcingService {
@@ -24,7 +21,7 @@ export class SourcingService {
     tenant_id: string,
     dto: CreateLoteIngresoDto,
     usuario_id?: string,
-  ): Promise<LoteIngreso> {
+  ): Promise<any> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -49,10 +46,25 @@ export class SourcingService {
       const costoUnitario = dto.costoUnitario != null && dto.costoUnitario > 0
         ? Number(dto.costoUnitario)
         : Number(producto.precioCosto || 0);
+
+      // Buscar o crear stock_id
+      let stock = await queryRunner.manager.findOne(Stock, {
+        where: { tenant_id, sucursal_id: dto.sucursal_id, producto_id: dto.producto_id },
+      });
+      if (!stock) {
+        stock = queryRunner.manager.create(Stock, {
+          tenant_id,
+          sucursal_id: dto.sucursal_id,
+          producto_id: dto.producto_id,
+          cantidadActual: 0,
+          costoPromedio: 0,
+        });
+        stock = await queryRunner.manager.save(stock);
+      }
+
       const lote = queryRunner.manager.create(LoteIngreso, {
         tenant_id,
-        sucursal_id: dto.sucursal_id,
-        producto_id: dto.producto_id,
+        stock_id: stock.id,
         cantidad: dto.cantidad,
         costoUnitario,
         fechaElaboracion: dto.fechaElaboracion,
@@ -77,7 +89,15 @@ export class SourcingService {
       );
 
       await queryRunner.commitTransaction();
-      return loteGuardado;
+      
+      // Mapear para compatibilidad con el frontend
+      return {
+        ...loteGuardado,
+        producto_id: dto.producto_id,
+        sucursal_id: dto.sucursal_id,
+        producto,
+        sucursal,
+      };
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;
@@ -86,19 +106,28 @@ export class SourcingService {
     }
   }
 
-  async getHistorial(tenant_id: string): Promise<LoteIngreso[]> {
-    return this.loteRep.find({
+  async getHistorial(tenant_id: string): Promise<any[]> {
+    const lotes = await this.loteRep.find({
       where: { tenant_id },
-      relations: ['producto', 'producto.proveedor', 'sucursal'],
+      relations: ['stock', 'stock.producto', 'stock.producto.proveedor', 'stock.sucursal'],
       order: { fechaIngreso: 'DESC' },
     });
+
+    // Mapear para compatibilidad 100% con el frontend actual
+    return lotes.map(l => ({
+      ...l,
+      producto_id: l.stock?.producto_id,
+      sucursal_id: l.stock?.sucursal_id,
+      producto: l.stock?.producto,
+      sucursal: l.stock?.sucursal,
+    }));
   }
 
   async update(
     tenant_id: string,
     id: string,
     dto: Partial<CreateLoteIngresoDto>,
-  ): Promise<LoteIngreso> {
+  ): Promise<any> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -106,26 +135,27 @@ export class SourcingService {
     try {
       const lote = await queryRunner.manager.findOne(LoteIngreso, {
         where: { id, tenant_id },
+        relations: ['stock'],
       });
       if (!lote) throw new NotFoundException('Lote no encontrado');
 
+      const currentProductoId = dto.producto_id || lote.stock?.producto_id;
+      const currentSucursalId = dto.sucursal_id || lote.stock?.sucursal_id;
+
       const previous = {
-        sucursal_id: lote.sucursal_id,
-        producto_id: lote.producto_id,
+        sucursal_id: lote.stock?.sucursal_id,
+        producto_id: lote.stock?.producto_id,
         cantidad: Number(lote.cantidad || 0),
-        valor:
-          Number(lote.cantidad || 0) * Number(lote.costoUnitario || 0),
+        valor: Number(lote.cantidad || 0) * Number(lote.costoUnitario || 0),
       };
 
-      Object.assign(lote, dto);
-
       const producto = await queryRunner.manager.findOne(Producto, {
-        where: { id: lote.producto_id, tenant_id },
+        where: { id: currentProductoId, tenant_id },
       });
       if (!producto) throw new NotFoundException('Producto no encontrado');
 
       const sucursal = await queryRunner.manager.findOne(Sucursal, {
-        where: { id: lote.sucursal_id, tenant_id },
+        where: { id: currentSucursalId, tenant_id },
       });
       if (!sucursal) throw new NotFoundException('Sucursal no encontrada');
       if (!sucursal.isActive) {
@@ -134,23 +164,41 @@ export class SourcingService {
         );
       }
 
+      // Buscar o crear stock_id nuevo
+      let stock = await queryRunner.manager.findOne(Stock, {
+        where: { tenant_id, sucursal_id: currentSucursalId, producto_id: currentProductoId },
+      });
+      if (!stock) {
+        stock = queryRunner.manager.create(Stock, {
+          tenant_id,
+          sucursal_id: currentSucursalId,
+          producto_id: currentProductoId,
+          cantidadActual: 0,
+          costoPromedio: 0,
+        });
+        stock = await queryRunner.manager.save(stock);
+      }
 
-
+      lote.stock_id = stock.id;
+      if (dto.cantidad !== undefined) lote.cantidad = dto.cantidad;
+      if (dto.fechaElaboracion !== undefined) lote.fechaElaboracion = dto.fechaElaboracion;
+      if (dto.fechaVencimiento !== undefined) lote.fechaVencimiento = dto.fechaVencimiento;
       lote.costoUnitario = Number(producto.precioCosto || 0);
+
       const loteGuardado = await queryRunner.manager.save(lote);
       const currentValue =
         Number(loteGuardado.cantidad || 0) *
         Number(loteGuardado.costoUnitario || 0);
 
       if (
-        previous.sucursal_id === loteGuardado.sucursal_id &&
-        previous.producto_id === loteGuardado.producto_id
+        previous.sucursal_id === currentSucursalId &&
+        previous.producto_id === currentProductoId
       ) {
         await this.stockService.applyStockDelta(
           queryRunner.manager,
           tenant_id,
-          loteGuardado.sucursal_id,
-          loteGuardado.producto_id,
+          currentSucursalId,
+          currentProductoId,
           Number(loteGuardado.cantidad || 0) - previous.cantidad,
           currentValue - previous.valor,
           'INGRESO',
@@ -161,6 +209,7 @@ export class SourcingService {
           loteGuardado.id,
         );
       } else {
+        // Desasociar del anterior
         await this.stockService.applyStockDelta(
           queryRunner.manager,
           tenant_id,
@@ -176,11 +225,12 @@ export class SourcingService {
           loteGuardado.id,
         );
 
+        // Asociar al nuevo
         await this.stockService.applyStockDelta(
           queryRunner.manager,
           tenant_id,
-          loteGuardado.sucursal_id,
-          loteGuardado.producto_id,
+          currentSucursalId,
+          currentProductoId,
           Number(loteGuardado.cantidad || 0),
           currentValue,
           'INGRESO',
@@ -193,7 +243,14 @@ export class SourcingService {
       }
 
       await queryRunner.commitTransaction();
-      return loteGuardado;
+      
+      return {
+        ...loteGuardado,
+        producto_id: currentProductoId,
+        sucursal_id: currentSucursalId,
+        producto,
+        sucursal,
+      };
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;
@@ -210,27 +267,34 @@ export class SourcingService {
     try {
       const lote = await queryRunner.manager.findOne(LoteIngreso, {
         where: { id, tenant_id },
+        relations: ['stock'],
       });
       if (!lote) throw new NotFoundException('Lote no encontrado');
 
       const valorLote =
         Number(lote.cantidad || 0) * Number(lote.costoUnitario || 0);
+      
+      const sucursalId = lote.stock?.sucursal_id;
+      const productoId = lote.stock?.producto_id;
+
       await queryRunner.manager.remove(lote);
 
-      await this.stockService.applyStockDelta(
-        queryRunner.manager,
-        tenant_id,
-        lote.sucursal_id,
-        lote.producto_id,
-        -Number(lote.cantidad || 0),
-        -valorLote,
-        'EGRESO',
-        `Eliminación de lote de ingreso ${lote.id}`,
-        undefined,
-        undefined,
-        'COMPRA',
-        lote.id,
-      );
+      if (sucursalId && productoId) {
+        await this.stockService.applyStockDelta(
+          queryRunner.manager,
+          tenant_id,
+          sucursalId,
+          productoId,
+          -Number(lote.cantidad || 0),
+          -valorLote,
+          'EGRESO',
+          `Eliminación de lote de ingreso ${lote.id}`,
+          undefined,
+          undefined,
+          'COMPRA',
+          lote.id,
+        );
+      }
 
       await queryRunner.commitTransaction();
     } catch (err) {
