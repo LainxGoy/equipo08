@@ -131,6 +131,42 @@ export async function runPreMigrations() {
       console.log('Pre-migration: Dropping ventas.detalle column...');
       await client.query('ALTER TABLE "ventas" DROP COLUMN "detalle"');
     }
+    // Populating stock_id on existing 'ajustes_inventario' rows before dropping columns
+    // We can find the stock row using tenant_id, sucursal_id, and producto_id (or create one if it doesn't exist)
+    const pendingAjustes = await client.query(`
+      SELECT id, tenant_id, sucursal_id, producto_id 
+      FROM ajustes_inventario 
+      WHERE stock_id IS NULL OR stock_id = ''
+    `);
+
+    for (const row of pendingAjustes.rows) {
+      // Find matching stock id
+      const stockRes = await client.query(`
+        SELECT id FROM stock 
+        WHERE tenant_id = $1 AND sucursal_id = $2 AND producto_id = $3
+      `, [row.tenant_id, row.sucursal_id, row.producto_id]);
+
+      let stockId = '';
+      if (stockRes.rowCount > 0) {
+        stockId = stockRes.rows[0].id;
+      } else {
+        // Create stock record dynamically to keep database integrity
+        const insertStock = await client.query(`
+          INSERT INTO stock (id, tenant_id, sucursal_id, producto_id, cantidad_actual, costo_promedio, ultima_actualizacion)
+          VALUES (gen_random_uuid(), $1, $2, $3, 0, 0, NOW())
+          RETURNING id
+        `, [row.tenant_id, row.sucursal_id, row.producto_id]);
+        stockId = insertStock.rows[0].id;
+      }
+
+      await client.query(`
+        UPDATE ajustes_inventario 
+        SET stock_id = $1 
+        WHERE id = $2
+      `, [stockId, row.id]);
+      console.log(`Pre-migration: Associated stock_id ${stockId} with ajuste_inventario ${row.id}`);
+    }
+
     // Drop redundant proveedor_id from lotes_ingreso (proveedor goes via producto)
     const dropCols = [
       ['lotes_ingreso', 'proveedor_id'],
