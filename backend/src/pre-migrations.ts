@@ -202,6 +202,11 @@ export async function runPreMigrations() {
       console.log(`Pre-migration: Deleted ${cleanOrphans.rowCount} records from ajustes_inventario because their stock_id did not exist in stock table.`);
     }
 
+    // Force stock_id to NOT NULL directly via postgres now that it is fully clean.
+    // This prevents TypeORM from attempting 'ALTER COLUMN stock_id SET NOT NULL' during its sync loop since the schema is already NOT NULL.
+    console.log('Pre-migration: Altering ajustes_inventario.stock_id to SET NOT NULL...');
+    await client.query('ALTER TABLE "ajustes_inventario" ALTER COLUMN "stock_id" SET NOT NULL');
+
     // Drop redundant proveedor_id from lotes_ingreso (proveedor goes via producto)
     const dropCols = [
       ['lotes_ingreso', 'proveedor_id'],
