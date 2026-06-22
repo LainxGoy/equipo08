@@ -21,7 +21,6 @@ export class Sucursal {
 
   @ManyToOne(() => Tenant, {
     onDelete: 'CASCADE',
-    createForeignKeyConstraints: false,
   })
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;

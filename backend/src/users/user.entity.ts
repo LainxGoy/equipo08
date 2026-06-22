@@ -30,7 +30,6 @@ export class User {
   @ManyToOne(() => Tenant, {
     nullable: true,
     onDelete: 'SET NULL',
-    createForeignKeyConstraints: false,
   })
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
