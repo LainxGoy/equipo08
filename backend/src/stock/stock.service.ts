@@ -1,12 +1,9 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Stock } from './stock.entity';
 import { MovimientoInventario } from './movimiento-inventario.entity';
+import { ProductoVariacion } from '../productos/producto-variacion.entity';
 
 @Injectable()
 export class StockService {
@@ -16,13 +13,44 @@ export class StockService {
     private readonly dataSource: DataSource,
   ) {}
 
+  // Helper para buscar o resolver dinámicamente la variante por defecto si no se pasa producto_variacion_id
+  private async resolveVariacionId(
+    manager: EntityManager,
+    tenant_id: string,
+    producto_id: string,
+    producto_variacion_id?: string,
+  ): Promise<string> {
+    if (producto_variacion_id) return producto_variacion_id;
+
+    // Buscar variante por defecto del producto
+    const variant = await manager.findOne(ProductoVariacion, {
+      where: { producto: { id: producto_id, tenant_id } },
+      order: { createdAt: 'ASC' },
+    });
+    if (!variant) {
+      // En caso extremo que no tenga variantes, la creamos al vuelo para no romper transaccionalidad
+      const newVar = manager.create(ProductoVariacion, {
+        producto_id,
+        sku: `SKU-${producto_id.split('-')[0]}`,
+        precioCosto: 0,
+        precioVenta: 0,
+        opciones: {},
+      });
+      const saved = await manager.save(newVar);
+      return saved.id;
+    }
+    return variant.id;
+  }
+
   async getStockRow(
     tenant_id: string,
     sucursal_id: string,
     producto_id: string,
+    producto_variacion_id?: string,
   ): Promise<Stock | null> {
+    const varId = await this.resolveVariacionId(this.stockRep.manager, tenant_id, producto_id, producto_variacion_id);
     return this.stockRep.findOne({
-      where: { tenant_id, sucursal_id, producto_id },
+      where: { tenant_id, sucursal_id, producto_variacion_id: varId },
     });
   }
 
@@ -37,6 +65,7 @@ export class StockService {
     usuario_id?: string,
     referencia_tipo?: string,
     referencia_id?: string,
+    producto_variacion_id?: string,
   ): Promise<Stock> {
     return this.applyStockDelta(
       this.stockRep.manager,
@@ -51,6 +80,7 @@ export class StockService {
       usuario_id,
       referencia_tipo,
       referencia_id,
+      producto_variacion_id,
     );
   }
 
@@ -67,9 +97,12 @@ export class StockService {
     usuario_id?: string,
     referencia_tipo?: string,
     referencia_id?: string,
+    producto_variacion_id?: string,
   ): Promise<Stock> {
+    const varId = await this.resolveVariacionId(manager, tenant_id, producto_id, producto_variacion_id);
+
     let stock = existingStock || await manager.findOne(Stock, {
-      where: { tenant_id, sucursal_id, producto_id },
+      where: { tenant_id, sucursal_id, producto_variacion_id: varId },
     });
 
     const stockAnterior = stock ? Number(stock.cantidadActual || 0) : 0;
@@ -79,12 +112,12 @@ export class StockService {
     const deltaCantidad = Number(cantidad || 0);
 
     if (!stock) {
-      // Si no existe el stock, el costo promedio es el costo unitario de esta entrada
       const initialCost = deltaCantidad > 0 ? Math.abs(Number(valorAdquisicionDelta)) / deltaCantidad : 0;
       stock = manager.create(Stock, {
         tenant_id,
         sucursal_id,
         producto_id,
+        producto_variacion_id: varId,
         cantidadActual: deltaCantidad,
         costoPromedio: initialCost,
       });
@@ -94,25 +127,26 @@ export class StockService {
         throw new BadRequestException('El stock no puede quedar negativo');
       }
 
-      // Si es una entrada de inventario (cantidad > 0), recalculamos el costo promedio ponderado
       if (deltaCantidad > 0) {
         const costoEntradaUnitario = Math.abs(Number(valorAdquisicionDelta)) / deltaCantidad;
         const valorActualTotal = stockAnterior * costoPromedioAnterior;
         const nuevoValorTotal = valorActualTotal + Math.abs(Number(valorAdquisicionDelta));
         nuevoCostoPromedio = nuevaCantidad > 0 ? nuevoValorTotal / nuevaCantidad : 0;
       } else {
-        // Si es una salida, el costo promedio se mantiene (se vende al costo promedio actual)
         nuevoCostoPromedio = costoPromedioAnterior;
       }
 
       stock.cantidadActual = nuevaCantidad;
       stock.costoPromedio = nuevoCostoPromedio;
+      // Por si el registro de stock viejo no tenía seteado el producto_variacion_id
+      if (!stock.producto_variacion_id) {
+        stock.producto_variacion_id = varId;
+      }
     }
 
     const savedStock = await manager.save(Stock, stock);
     const stockResultante = savedStock ? savedStock.cantidadActual : stock.cantidadActual;
 
-    // Registrar movimiento de inventario
     const movimiento = manager.create(MovimientoInventario, {
       tenant_id,
       stock_id: savedStock?.id || stock.id || 'mock-stock-id',
@@ -134,7 +168,7 @@ export class StockService {
   async getStockByTenant(tenant_id: string): Promise<Stock[]> {
     return this.stockRep.find({
       where: { tenant_id },
-      relations: ['producto', 'sucursal'],
+      relations: ['producto', 'sucursal', 'variacion'],
       order: {
         sucursal_id: 'ASC',
       },
@@ -147,6 +181,7 @@ export class StockService {
     to_sucursal_id: string,
     producto_id: string,
     cantidad: number,
+    producto_variacion_id?: string,
   ): Promise<void> {
     if (from_sucursal_id === to_sucursal_id) {
       throw new BadRequestException(
@@ -162,9 +197,11 @@ export class StockService {
     await queryRunner.startTransaction();
 
     try {
+      const varId = await this.resolveVariacionId(queryRunner.manager, tenant_id, producto_id, producto_variacion_id);
+
       // Bloquear registro origen
       const sourceStock = await queryRunner.manager.findOne(Stock, {
-        where: { tenant_id, sucursal_id: from_sucursal_id, producto_id },
+        where: { tenant_id, sucursal_id: from_sucursal_id, producto_variacion_id: varId },
         lock: { mode: 'pessimistic_write' },
       });
 
@@ -174,11 +211,10 @@ export class StockService {
         );
       }
 
-      // Calcular valor de la porción transferida
       const avgCost = Number(sourceStock.costoPromedio || 0);
       const transferredValue = avgCost * cantidad;
 
-      // Descontar de origen utilizando applyStockDelta para auditoría
+      // Descontar de origen utilizando applyStockDelta
       await this.applyStockDelta(
         queryRunner.manager,
         tenant_id,
@@ -189,15 +225,19 @@ export class StockService {
         'TRANSFERENCIA',
         `Transferencia salida a sucursal ${to_sucursal_id}`,
         sourceStock,
+        undefined,
+        undefined,
+        undefined,
+        varId,
       );
 
       // Bloquear/Crear registro destino
       const targetStock = await queryRunner.manager.findOne(Stock, {
-        where: { tenant_id, sucursal_id: to_sucursal_id, producto_id },
+        where: { tenant_id, sucursal_id: to_sucursal_id, producto_variacion_id: varId },
         lock: { mode: 'pessimistic_write' },
       });
 
-      // Incrementar en destino utilizando applyStockDelta para auditoría
+      // Incrementar en destino utilizando applyStockDelta
       await this.applyStockDelta(
         queryRunner.manager,
         tenant_id,
@@ -208,6 +248,10 @@ export class StockService {
         'TRANSFERENCIA',
         `Transferencia entrada desde sucursal ${from_sucursal_id}`,
         targetStock || undefined,
+        undefined,
+        undefined,
+        undefined,
+        varId,
       );
 
       await queryRunner.commitTransaction();

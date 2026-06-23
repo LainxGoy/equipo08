@@ -14,14 +14,22 @@ describe('StockService - Pruebas de Producción', () => {
 
   // Mock de un EntityManager reutilizable
   const createMockManager = () => ({
-    findOne: jest.fn(),
+    findOne: jest.fn((entity: any, options: any) => {
+      // Mock para la búsqueda de variaciones en resolveVariacionId
+      if (entity.name === 'ProductoVariacion') {
+        return Promise.resolve({ id: 'generated-id' });
+      }
+      return Promise.resolve(null);
+    }),
     create: jest.fn((entity: any, data: any) => ({ ...data })),
     save: jest.fn((entity: any, data: any) => Promise.resolve({ id: 'generated-id', ...data })),
   });
 
   beforeEach(() => {
     mockStockRep = {
-      findOne: jest.fn(),
+      findOne: jest.fn((options: any) => {
+        return Promise.resolve(null);
+      }),
       manager: createMockManager(),
     };
     mockDataSource = {
@@ -52,8 +60,8 @@ describe('StockService - Pruebas de Producción', () => {
         10, 500, 'INGRESO', 'Lote inicial',
       );
 
-      // Verificar que se guardaron exactamente 2 entidades en el mismo manager
-      expect(manager.save).toHaveBeenCalledTimes(2); // Stock + MovimientoInventario
+      // Verificar que se guardaron las entidades en el mismo manager (3 llamadas en total por la ProductoVariacion de emergencia)
+      expect(manager.save).toHaveBeenCalledTimes(3); // Variacion + Stock + MovimientoInventario
       expect(result.cantidadActual).toBe(10);
       expect(result.costoPromedio).toBe(50); // 500/10
     });
@@ -64,7 +72,6 @@ describe('StockService - Pruebas de Producción', () => {
         id: 'stock-1', tenant_id: 'tenant-1', sucursal_id: 'suc-1',
         producto_id: 'prod-1', cantidadActual: 20, costoPromedio: 50,
       };
-      manager.findOne.mockResolvedValue(null); // No se busca porque pasamos existingStock
 
       await service.applyStockDelta(
         manager, 'tenant-1', 'suc-1', 'prod-1',
@@ -240,7 +247,7 @@ describe('StockService - Pruebas de Producción', () => {
       await service.getStockRow('tenant-A', 'suc-1', 'prod-1');
 
       expect(mockStockRep.findOne).toHaveBeenCalledWith({
-        where: { tenant_id: 'tenant-A', sucursal_id: 'suc-1', producto_id: 'prod-1' },
+        where: { tenant_id: 'tenant-A', sucursal_id: 'suc-1', producto_variacion_id: 'generated-id' },
       });
     });
 
@@ -258,7 +265,6 @@ describe('StockService - Pruebas de Producción', () => {
 
     it('24. [Multi-Tenant] applyStockDelta - Debe crear stock con tenant_id correcto', async () => {
       const manager = createMockManager();
-      manager.findOne.mockResolvedValue(null);
 
       await service.applyStockDelta(
         manager, 'tenant-X', 'suc-1', 'prod-1',
@@ -278,7 +284,6 @@ describe('StockService - Pruebas de Producción', () => {
 
     it('25. [Multi-Tenant] applyStockDelta - Debe buscar stock filtrando por tenant_id', async () => {
       const manager = createMockManager();
-      manager.findOne.mockResolvedValue(null);
 
       await service.applyStockDelta(
         manager, 'tenant-Z', 'suc-1', 'prod-1',
@@ -286,7 +291,7 @@ describe('StockService - Pruebas de Producción', () => {
       );
 
       expect(manager.findOne).toHaveBeenCalledWith(Stock, {
-        where: { tenant_id: 'tenant-Z', sucursal_id: 'suc-1', producto_id: 'prod-1' },
+        where: { tenant_id: 'tenant-Z', sucursal_id: 'suc-1', producto_variacion_id: 'generated-id' },
       });
     });
 
@@ -295,18 +300,21 @@ describe('StockService - Pruebas de Producción', () => {
       const mockSourceStock = {
         id: 'stock-1', cantidadActual: 20, costoPromedio: 50,
       };
+      
+      // La primera llamada resolverá la variación y retornará su mock
       runner.manager.findOne
-        .mockResolvedValueOnce(mockSourceStock)  // stock origen con lock
-        .mockResolvedValueOnce(null);            // stock destino no existe
+        .mockResolvedValueOnce({ id: 'generated-id' }) // resolveVariacionId call
+        .mockResolvedValueOnce(mockSourceStock)       // stock origen con lock
+        .mockResolvedValueOnce(null);                 // stock destino no existe
 
       // Mock applyStockDelta para que no falle
       jest.spyOn(service, 'applyStockDelta').mockResolvedValue(mockSourceStock as any);
 
       await service.transferStock('tenant-AISLADO', 'suc-1', 'suc-2', 'prod-1', 5);
 
-      // Verificar que findOne del origen filtró por tenant_id
-      expect(runner.manager.findOne).toHaveBeenCalledWith(Stock, {
-        where: { tenant_id: 'tenant-AISLADO', sucursal_id: 'suc-1', producto_id: 'prod-1' },
+      // Verificar que findOne del origen filtró por tenant_id y producto_variacion_id
+      expect(runner.manager.findOne).toHaveBeenNthCalledWith(2, Stock, {
+        where: { tenant_id: 'tenant-AISLADO', sucursal_id: 'suc-1', producto_variacion_id: 'generated-id' },
         lock: { mode: 'pessimistic_write' },
       });
 

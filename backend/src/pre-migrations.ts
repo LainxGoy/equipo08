@@ -429,6 +429,61 @@ export async function runPreMigrations() {
       console.log(`Pre-migration: Created default variation for product "${row.id}" with SKU ${sku}`);
     }
 
+    // STOCK VARIATIONS MIGRATION STEP:
+    // 1. Add 'producto_variacion_id' column to 'stock' if it does not exist
+    const checkStockVarCol = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'stock' AND column_name = 'producto_variacion_id'
+    `);
+    if (checkStockVarCol.rowCount === 0) {
+      console.log('Pre-migration: Adding producto_variacion_id column to stock...');
+      await client.query('ALTER TABLE "stock" ADD COLUMN "producto_variacion_id" UUID NULL');
+    }
+
+    // 2. Populate product_variacion_id using the default variation for each product
+    const pendingStock = await client.query(`
+      SELECT id, producto_id 
+      FROM stock 
+      WHERE producto_variacion_id IS NULL
+    `);
+
+    for (const row of pendingStock.rows) {
+      const varRes = await client.query(`
+        SELECT id FROM producto_variaciones 
+        WHERE producto_id = $1 
+        ORDER BY created_at ASC LIMIT 1
+      `, [row.producto_id]);
+
+      let varId = '';
+      if (varRes.rowCount > 0) {
+        varId = varRes.rows[0].id;
+      } else {
+        // En caso extremo que no se hubiese creado la variante por defecto (por SKU duplicado), la creamos al vuelo
+        const newVarRes = await client.query(`
+          INSERT INTO producto_variaciones (id, producto_id, sku, precio_costo, precio_venta, opciones, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, 0, 0, '{}', now(), now())
+          RETURNING id
+        `, [row.producto_id, `SKU-STOCK-${row.id.split('-')[0]}`]);
+        varId = newVarRes.rows[0].id;
+      }
+
+      await client.query(`
+        UPDATE stock 
+        SET producto_variacion_id = $1 
+        WHERE id = $2
+      `, [varId, row.id]);
+    }
+
+    // 3. Clean any stock without varId
+    const cleanStockNulls = await client.query("DELETE FROM stock WHERE producto_variacion_id IS NULL");
+    if (cleanStockNulls.rowCount > 0) {
+      console.log(`Pre-migration: Deleted ${cleanStockNulls.rowCount} stock records due to missing variation.`);
+    }
+
+    // 4. Set stock.producto_variacion_id to NOT NULL
+    console.log('Pre-migration: Altering stock.producto_variacion_id to SET NOT NULL...');
+    await client.query('ALTER TABLE "stock" ALTER COLUMN "producto_variacion_id" SET NOT NULL');
+
     // Drop redundant proveedor_id and columns from lotes_ingreso / ajustes_inventario
     const dropCols = [
       ['lotes_ingreso', 'proveedor_id'],
