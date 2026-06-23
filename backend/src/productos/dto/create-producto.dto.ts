@@ -49,4 +49,9 @@ export class CreateProductoDto {
   @IsString()
   @IsOptional() // In case it's orphan initially
   proveedor_id?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  categoria_id?: string;
 }

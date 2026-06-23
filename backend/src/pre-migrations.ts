@@ -321,6 +321,74 @@ export async function runPreMigrations() {
     console.log('Pre-migration: Altering lotes_ingreso.stock_id to SET NOT NULL...');
     await client.query('ALTER TABLE "lotes_ingreso" ALTER COLUMN "stock_id" SET NOT NULL');
 
+    // CATEGORIAS MIGRATION STEP:
+    // 1. Create table 'categorias' if it does not exist
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "categorias" (
+        "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        "tenant_id" VARCHAR NOT NULL,
+        "nombre" VARCHAR NOT NULL,
+        "parent_id" UUID NULL REFERENCES "categorias"("id") ON DELETE SET NULL,
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "UQ_tenant_nombre" UNIQUE ("tenant_id", "nombre")
+      )
+    `);
+
+    // 2. Add 'categoria_id' column to 'productos' if it doesn't exist yet
+    const checkProductCatIdCol = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'productos' AND column_name = 'categoria_id'
+    `);
+    if (checkProductCatIdCol.rowCount === 0) {
+      console.log('Pre-migration: Adding categoria_id column to productos...');
+      await client.query('ALTER TABLE "productos" ADD COLUMN "categoria_id" UUID NULL');
+    }
+
+    // 3. Find all products that have a non-empty string 'category' but NULL 'categoria_id'
+    // check if 'category' column exists first to avoid crash if it was dropped in some other version
+    const checkCategoryTextCol = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'productos' AND column_name = 'category'
+    `);
+    
+    if (checkCategoryTextCol.rowCount > 0) {
+      const pendingProducts = await client.query(`
+        SELECT id, tenant_id, category 
+        FROM productos 
+        WHERE categoria_id IS NULL AND category IS NOT NULL AND category != ''
+      `);
+
+      for (const row of pendingProducts.rows) {
+        const catName = row.category.trim();
+        // Check if category already exists in this tenant
+        let catRes = await client.query(`
+          SELECT id FROM categorias 
+          WHERE tenant_id = $1 AND LOWER(nombre) = LOWER($2)
+        `, [row.tenant_id, catName]);
+
+        let catId = '';
+        if (catRes.rowCount > 0) {
+          catId = catRes.rows[0].id;
+        } else {
+          // Insert category
+          const insertCat = await client.query(`
+            INSERT INTO categorias (id, tenant_id, nombre, created_at)
+            VALUES (gen_random_uuid(), $1, $2, now())
+            RETURNING id
+          `, [row.tenant_id, catName]);
+          catId = insertCat.rows[0].id;
+          console.log(`Pre-migration: Created category "${catName}" for tenant ${row.tenant_id}`);
+        }
+
+        // Update product with category ID
+        await client.query(`
+          UPDATE productos 
+          SET categoria_id = $1 
+          WHERE id = $2
+        `, [catId, row.id]);
+      }
+    }
+
     // Drop redundant proveedor_id and columns from lotes_ingreso / ajustes_inventario
     const dropCols = [
       ['lotes_ingreso', 'proveedor_id'],

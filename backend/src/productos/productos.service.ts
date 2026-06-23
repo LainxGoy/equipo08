@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, ILike, IsNull, DataSource, In } from 'typeorm';
 import { Producto } from './producto.entity';
+import { Categoria } from './categoria.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { LoteIngreso } from '../sourcing/lote-ingreso.entity';
 import { Stock } from '../stock/stock.entity';
@@ -89,16 +90,45 @@ export class ProductosService {
     if (dto.proveedor_id === '') {
       delete dto.proveedor_id;
     }
+    if (dto.categoria_id === '') {
+      delete dto.categoria_id;
+    }
 
-    const prod = this.prodRep.create({ ...dto, tenant_id });
+    // Lógica de compatibilidad hacia atrás: si envían 'category' de texto pero no 'categoria_id',
+    // buscamos o creamos la categoría dinámicamente para no romper nada.
+    let categoriaId = dto.categoria_id;
+    if (!categoriaId && dto.category) {
+      const catRep = this.dataSource.getRepository(Categoria);
+      let cat = await catRep.findOne({
+        where: { tenant_id, nombre: ILike(dto.category) },
+      });
+      if (!cat) {
+        cat = catRep.create({ tenant_id, nombre: dto.category.trim() });
+        cat = await catRep.save(cat);
+      }
+      categoriaId = cat.id;
+    }
+
+    const prod = this.prodRep.create({
+      ...dto,
+      categoria_id: categoriaId,
+      tenant_id,
+    });
     return this.prodRep.save(prod);
   }
 
   async findAll(tenant_id: string): Promise<Producto[]> {
-    return this.prodRep.find({
+    const productos = await this.prodRep.find({
       where: { tenant_id },
-      relations: ['proveedor', 'stocks'],
+      relations: ['proveedor', 'stocks', 'categoria'],
     });
+
+    // Mapeamos para garantizar compatibilidad hacia atrás con el frontend:
+    // Hacemos que 'category' refleje siempre el nombre de la categoría enlazada.
+    return productos.map(p => ({
+      ...p,
+      category: p.categoria ? p.categoria.nombre : (p as any).category,
+    })) as any;
   }
 
   async update(
@@ -114,8 +144,27 @@ export class ProductosService {
     if (dto.proveedor_id === '') {
       delete dto.proveedor_id;
     }
+    if (dto.categoria_id === '') {
+      delete dto.categoria_id;
+    }
 
-    Object.assign(prod, dto);
+    let categoriaId = dto.categoria_id;
+    if (!categoriaId && dto.category) {
+      const catRep = this.dataSource.getRepository(Categoria);
+      let cat = await catRep.findOne({
+        where: { tenant_id, nombre: ILike(dto.category) },
+      });
+      if (!cat) {
+        cat = catRep.create({ tenant_id, nombre: dto.category.trim() });
+        cat = await catRep.save(cat);
+      }
+      categoriaId = cat.id;
+    }
+
+    Object.assign(prod, {
+      ...dto,
+      ...(categoriaId ? { categoria_id: categoriaId } : {}),
+    });
     return this.prodRep.save(prod);
   }
 
