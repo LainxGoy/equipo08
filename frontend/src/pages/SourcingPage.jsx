@@ -318,7 +318,15 @@ export default function SourcingPage() {
                   type="text"
                   readOnly
                   className="bg-slate-100 cursor-not-allowed"
-                  value={selectedProductObj?.proveedor?.name || selectedProductObj?.proveedor_id ? 'Cargando...' : 'Seleccione un producto primero'}
+                  value={(() => {
+                    if (!selectedProductObj) return 'Seleccione un producto primero';
+                    if (selectedProductObj.proveedor?.name) return selectedProductObj.proveedor.name;
+                    if (selectedProductObj.proveedor_id) {
+                      const prov = providers.find(p => p.id === selectedProductObj.proveedor_id);
+                      return prov ? prov.name : 'Proveedor no encontrado';
+                    }
+                    return 'Sin proveedor asignado';
+                  })()}
                 />
                 <span className="block mt-1 text-xs text-slate-500">Se hereda del producto en el catálogo</span>
               </div>
@@ -329,9 +337,9 @@ export default function SourcingPage() {
               </div>
 
               <div className="form-group">
-                <label>Costo Unitario de Compra (Bs) *</label>
-                <input type="number" min="0" step="0.01" required placeholder="Ej: 45.00" value={loteForm.costoUnitario} onChange={e => setLoteForm({...loteForm, costoUnitario: e.target.value})} />
-                <span className="block mt-1 text-xs text-slate-500">Precio que pagaste al proveedor por unidad</span>
+                <label>Costo Unitario de Compra (Bs)</label>
+                <input type="number" min="0" step="0.01" placeholder={selectedProductObj ? `Heredado: Bs. ${selectedProductObj.precioCosto}` : 'Ej: 45.00'} value={loteForm.costoUnitario} onChange={e => setLoteForm({...loteForm, costoUnitario: e.target.value})} />
+                <span className="block mt-1 text-xs text-slate-500">Si lo dejas vacío, heredará automáticamente el costo configurado en el catálogo.</span>
               </div>
 
               {showExpirationDate && (
