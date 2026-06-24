@@ -707,7 +707,7 @@ export default function PublicCatalogPage() {
                     <span className="text-[var(--txt-secondary)] font-semibold text-sm">Total estimado</span>
                     <span className="text-xl font-black">Bs {cartTotal.toFixed(2)}</span>
                   </div>
-                  <button onClick={sendWhatsApp} className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] shadow-sm border-none cursor-pointer">
+                  <button onClick={sendWhatsApp} className="w-full bg-[var(--blue)] hover:bg-[var(--blue-hover)] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] shadow-sm border-none cursor-pointer">
                     <Send size={18} /> Confirmar por WhatsApp
                   </button>
                 </div>
