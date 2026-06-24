@@ -149,9 +149,11 @@ export default function ProvidersPage() {
                     id="prov-tax-id"
                     type="text" 
                     value={formData.taxId} 
-                    onChange={e => setFormData({...formData, taxId: e.target.value})} 
-                    pattern="^\d{8,12}$" 
-                    title="Debe contener entre 8 y 12 números sin espacios ni símbolos" 
+                    onChange={e => {
+                      const cleanVal = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      setFormData({...formData, taxId: cleanVal});
+                    }} 
+                    maxLength={12}
                     placeholder="Escribe el NIT..." 
                     className="flex-1"
                   />

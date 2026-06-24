@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsOptional } from 'class-validator';
+import { IsString, IsEmail, IsOptional, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProveedorDto {
@@ -19,5 +19,6 @@ export class CreateProveedorDto {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
+  @Matches(/^\d{8,12}$/, { message: 'El NIT o RUT debe contener únicamente entre 8 y 12 números, sin letras ni símbolos.' })
   taxId?: string;
 }

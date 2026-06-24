@@ -718,7 +718,11 @@ export default function PosPage() {
                   <input 
                     type="text" 
                     value={clienteDocumento} 
-                    onChange={e => setClienteDocumento(e.target.value)} 
+                    onChange={e => {
+                      const cleanVal = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      setClienteDocumento(cleanVal);
+                    }} 
+                    maxLength={12}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); searchClient(); } }}
                     placeholder="Ej. 1234567" 
                     className="flex-1 py-2.5 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-white placeholder:text-slate-400"
