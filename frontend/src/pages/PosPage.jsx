@@ -521,15 +521,16 @@ export default function PosPage() {
       <div className="w-[380px] bg-white border-l border-slate-200 flex flex-col h-full shadow-lg z-20 flex-shrink-0">
         
         {/* Cart Header */}
-        <div className="p-6 pb-0 flex-shrink-0">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2 text-slate-800 font-bold text-lg">
-              <Store size={20} />
-              <span>Caja 01</span>
-            </div>
-            <span className="text-sm text-slate-500 font-medium">Orden: #{orderNumber}</span>
+        <div className="bg-[#0f172a] text-white p-6 h-[70px] border-b border-slate-800 flex justify-between items-center flex-shrink-0">
+          <div className="flex items-center gap-2 font-bold text-base">
+            <Store size={18} className="text-white" />
+            <span>Caja 01</span>
           </div>
-          
+          <span className="text-xs text-slate-400 font-medium">Orden: #{orderNumber}</span>
+        </div>
+
+        {/* Tab Selector below Header */}
+        <div className="p-6 pb-0 flex-shrink-0">
           <div className="flex border-b border-slate-100 dark:border-slate-800 w-full mb-4">
             <div 
               role="button" 
