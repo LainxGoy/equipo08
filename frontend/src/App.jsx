@@ -272,10 +272,11 @@ function App() {
       // 1. Obtener datos actualizados del usuario (ej: si le cambiaron la sucursal)
       try {
         const meRes = await api.get('/users/me');
-        const currentSucursalId = sessionStorage.getItem('user_sucursal_id');
+        const currentSucursalId = sessionStorage.getItem('user_sucursal_id') || '';
+        const meSucursalId = meRes.data.sucursal_id || '';
         
         // Si la sucursal cambió, actualizamos y recargamos para limpiar estado de componentes
-        if (meRes.data.sucursal_id !== currentSucursalId && meRes.data.role !== 'OWNER' && meRes.data.role !== 'SUPER_ADMIN') {
+        if (meSucursalId !== currentSucursalId && meRes.data.role !== 'OWNER' && meRes.data.role !== 'SUPER_ADMIN') {
           sessionStorage.setItem('user_sucursal_id', meRes.data.sucursal_id || '');
           sessionStorage.setItem('user_sucursal_name', meRes.data.sucursal_name || '');
           window.location.reload();
