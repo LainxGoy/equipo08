@@ -443,17 +443,16 @@ export default function PosPage() {
       {/* LEFT SIDEBAR - Categories */}
       <div className="w-[110px] bg-[#0f172a] border-r border-slate-800 flex flex-col items-center py-6 shadow-sm z-10 flex-shrink-0 overflow-y-auto custom-scrollbar">
         {userRole === 'VENDEDOR' ? (
-          <div 
-            onClick={handleLogout}
-            role="button"
-            className="flex flex-col items-center mb-6 hover:opacity-80 transition-opacity cursor-pointer animate-fadeIn"
-            title="Volver al panel principal"
+          <Link 
+            to="/sales" 
+            className="flex flex-col items-center mb-6 hover:opacity-80 transition-opacity cursor-pointer"
+            title="Volver a Ventas"
           >
             <div className="w-10 h-10 bg-slate-800 text-white rounded-full mb-2 flex items-center justify-center shadow-md">
               <ArrowLeft size={20} />
             </div>
             <span className="text-[11px] font-black tracking-tight text-slate-200 text-center px-1 truncate w-full uppercase">Volver</span>
-          </div>
+          </Link>
         ) : (
           <Link to="/" className="flex flex-col items-center mb-6 hover:opacity-80 transition-opacity" title="Volver al panel principal">
             <div className="w-10 h-10 bg-slate-800 text-white rounded-full mb-2 flex items-center justify-center shadow-md">
