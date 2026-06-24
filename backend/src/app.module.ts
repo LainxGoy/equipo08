@@ -30,6 +30,9 @@ import { AjusteInventario } from './ajustes/ajuste.entity';
 import { Venta } from './ventas/venta.entity';
 import { VentaDetalle } from './ventas/venta-detalle.entity';
 
+import { Categoria } from './productos/categoria.entity';
+import { ProductoVariacion } from './productos/producto-variacion.entity';
+
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { PermissionsGuard } from './auth/guards/permissions.guard';
@@ -54,6 +57,8 @@ const shouldSynchronizeDatabase =
         Cliente,
         Proveedor,
         Producto,
+        Categoria,
+        ProductoVariacion,
         LoteIngreso,
         Stock,
         MovimientoInventario,
