@@ -97,7 +97,7 @@ const VENDEDOR_DEFAULTS: Record<PermissionKey, boolean> = {
   sourcing_crear: false,
   sourcing_editar: false,
   sourcing_eliminar: false,
-  inventario_ver: false,
+  inventario_ver: true,
   inventario_crear: false,
   inventario_editar: false,
   inventario_eliminar: false,

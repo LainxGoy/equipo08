@@ -179,7 +179,7 @@ function Sidebar({ setAuthToken, permissions, isOpen, setIsOpen }) {
             </>
           )}
 
-          {hasPerm('inventario.ver') && (
+          {hasPerm('inventario.ver') && userRole !== 'VENDEDOR' && (
             <>
               <NavItem to="/stock"         icon={Archive}   label="Inventario"          active={p === '/stock'} isOpen={isOpen} />
               <NavItem to="/audit-reports" icon={BarChart2} label="Auditoría"           active={p === '/audit-reports'} isOpen={isOpen} />
