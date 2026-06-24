@@ -165,13 +165,23 @@ export class StockService {
     return savedStock || stock;
   }
 
-  async getStockByTenant(tenant_id: string): Promise<Stock[]> {
-    return this.stockRep.find({
+  async getStockByTenant(tenant_id: string): Promise<any[]> {
+    const stocks = await this.stockRep.find({
       where: { tenant_id },
       relations: ['producto', 'sucursal', 'variacion'],
       order: {
         sucursal_id: 'ASC',
       },
+    });
+
+    return stocks.map(s => {
+      const cant = Number(s.cantidadActual || 0);
+      const cp = Number(s.costoPromedio || 0);
+      return {
+        ...s,
+        cantidadTotal: cant,
+        valorAdquisicion: cant * cp,
+      };
     });
   }
 
