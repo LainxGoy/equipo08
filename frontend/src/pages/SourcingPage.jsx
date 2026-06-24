@@ -333,12 +333,35 @@ export default function SourcingPage() {
 
               <div className="form-group">
                 <label>Unidades Físicas (Cajas/Pzas) *</label>
-                <input type="number" min="1" required value={loteForm.cantidad} onChange={e => setLoteForm({...loteForm, cantidad: e.target.value})} />
+                <input 
+                  type="number" 
+                  min="1" 
+                  required 
+                  value={loteForm.cantidad} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val.length <= 15) {
+                      setLoteForm({...loteForm, cantidad: val});
+                    }
+                  }} 
+                />
               </div>
 
               <div className="form-group">
                 <label>Costo Unitario de Compra (Bs)</label>
-                <input type="number" min="0" step="0.01" placeholder={selectedProductObj ? `Heredado: Bs. ${selectedProductObj.precioCosto}` : 'Ej: 45.00'} value={loteForm.costoUnitario} onChange={e => setLoteForm({...loteForm, costoUnitario: e.target.value})} />
+                <input 
+                  type="number" 
+                  min="0" 
+                  step="0.01" 
+                  placeholder={selectedProductObj ? `Heredado: Bs. ${selectedProductObj.precioCosto}` : 'Ej: 45.00'} 
+                  value={loteForm.costoUnitario} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val.length <= 15) {
+                      setLoteForm({...loteForm, costoUnitario: val});
+                    }
+                  }} 
+                />
                 <span className="block mt-1 text-xs text-slate-500">Si lo dejas vacío, heredará automáticamente el costo configurado en el catálogo.</span>
               </div>
 

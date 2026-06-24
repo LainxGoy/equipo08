@@ -1,4 +1,4 @@
-import { IsString, IsNumber, Min, IsOptional } from 'class-validator';
+import { IsString, IsNumber, Min, Max, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateLoteIngresoDto {
@@ -13,11 +13,13 @@ export class CreateLoteIngresoDto {
   @ApiProperty()
   @IsNumber()
   @Min(1)
+  @Max(999999999999999, { message: 'La cantidad no puede superar los 15 dígitos.' })
   cantidad: number;
 
   @ApiProperty({ required: false, description: 'Costo unitario de compra. Si no se envía, se usa el precioCosto del catálogo.' })
   @IsNumber()
   @Min(0)
+  @Max(999999999999999, { message: 'El costo unitario no puede superar los 15 dígitos.' })
   @IsOptional()
   costoUnitario?: number;
 
