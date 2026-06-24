@@ -97,7 +97,7 @@ export class VentasController {
   }
 
   @Post(':id/anular')
-  @RequirePermission('ventas.crear')
+  @RequirePermission('ventas.eliminar')
   async anular(@Param('id') id: string, @TenantId() tenant_id: string) {
     return this.ventasService.anular(tenant_id, id);
   }
