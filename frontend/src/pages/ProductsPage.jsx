@@ -293,10 +293,22 @@ export default function ProductsPage() {
                     id={`attr-${attr.key}`}
                     type="text"
                     value={formData.attributes?.[attr.key] || ''}
-                    onChange={e => setFormData({
-                      ...formData, 
-                      attributes: { ...(formData.attributes || {}), [attr.key]: e.target.value }
-                    })}
+                    onChange={e => {
+                      let cleanVal = e.target.value;
+                      if (attr.key === 'peso') {
+                        const numeric = cleanVal.replace(/[^0-9.]/g, '');
+                        const parts = numeric.split('.');
+                        cleanVal = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+                      } else if (attr.key === 'volumen_ml' || attr.key === 'garantia') {
+                        cleanVal = cleanVal.replace(/\D/g, '');
+                      } else {
+                        cleanVal = cleanVal.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ0-9\s\-]/g, '');
+                      }
+                      setFormData({
+                        ...formData, 
+                        attributes: { ...(formData.attributes || {}), [attr.key]: cleanVal }
+                      });
+                    }}
                     placeholder={`Ej. ${attr.label}`}
                   />
                 </div>

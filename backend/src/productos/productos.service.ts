@@ -35,6 +35,36 @@ export class ProductosService {
       }
     }
 
+    if (dto.attributes) {
+      for (const [key, value] of Object.entries(dto.attributes)) {
+        if (value === undefined || value === null || value === '') continue;
+        const strVal = String(value).trim();
+        
+        if (key === 'peso' || key === 'volumen_ml' || key === 'garantia') {
+          if (key === 'peso') {
+            if (!/^\d+(\.\d+)?$/.test(strVal)) {
+              throw new BadRequestException(
+                `El atributo 'Peso/Gramaje' debe ser un valor numérico válido (ej. 500 o 1.5).`,
+              );
+            }
+          } else {
+            const labelName = key === 'volumen_ml' ? 'Volumen (ML)' : 'Garantía (Meses)';
+            if (!/^\d+$/.test(strVal)) {
+              throw new BadRequestException(
+                `El atributo '${labelName}' debe contener únicamente números enteros.`,
+              );
+            }
+          }
+        } else {
+          if (!/^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s\-]+$/.test(strVal)) {
+            throw new BadRequestException(
+              `El atributo '${key}' no debe contener símbolos especiales. Solo se permiten letras, números, espacios y guiones.`,
+            );
+          }
+        }
+      }
+    }
+
     if (dto.name) {
       if (
         !/^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s\-丨\|]*[A-Za-záéíóúÁÉÍÓÚñÑ][A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s\-丨\|]*$/.test(
