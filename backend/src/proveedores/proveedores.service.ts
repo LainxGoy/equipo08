@@ -86,10 +86,25 @@ export class ProveedoresService implements OnModuleInit {
     dto: Partial<CreateProveedorDto>,
     excludeId?: string,
   ) {
-    if (dto.name && !/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/.test(dto.name)) {
-      throw new BadRequestException(
-        'El nombre del proveedor no debe incluir números ni símbolos.',
-      );
+    if (dto.name) {
+      if (dto.name.length > 20) {
+        throw new BadRequestException(
+          'La razón social no debe exceder los 20 caracteres.',
+        );
+      }
+      if (!/^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]+$/.test(dto.name)) {
+        throw new BadRequestException(
+          'La razón social solo debe contener letras, números y espacios.',
+        );
+      }
+    }
+
+    if (dto.phone) {
+      if (!/^\d{1,8}$/.test(dto.phone)) {
+        throw new BadRequestException(
+          'El número de teléfono debe contener únicamente hasta 8 dígitos numéricos.',
+        );
+      }
     }
 
     if (dto.taxId) {

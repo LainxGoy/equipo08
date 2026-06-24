@@ -180,7 +180,11 @@ export default function ProvidersPage() {
                   id="prov-name"
                   type="text" 
                   value={formData.name} 
-                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  onChange={e => {
+                    const cleanName = e.target.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]/g, '').slice(0, 20);
+                    setFormData({...formData, name: cleanName});
+                  }}
+                  maxLength={20}
                   required 
                   placeholder="Escribe la razón social..." 
                 />
@@ -203,8 +207,12 @@ export default function ProvidersPage() {
                   id="prov-phone"
                   type="text" 
                   value={formData.phone} 
-                  onChange={e => setFormData({...formData, phone: e.target.value})}
-                  placeholder="Ej. +591 70000000" 
+                  onChange={e => {
+                    const cleanPhone = e.target.value.replace(/\D/g, '').slice(0, 8);
+                    setFormData({...formData, phone: cleanPhone});
+                  }}
+                  maxLength={8}
+                  placeholder="Ej. 70000000" 
                 />
               </div>
 
