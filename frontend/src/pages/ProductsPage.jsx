@@ -3,6 +3,7 @@ import api, { getBackendUrl } from '../api';
 import { PackageSearch, Plus, X, Loader2, Edit2, Trash2, AlertTriangle, Tag, Search, Copy, ChevronRight, ChevronDown } from 'lucide-react';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
+import KardexModal from '../components/KardexModal';
 
 const CATEGORY_ATTRIBUTES = {
   "Bebidas": [{ key: "sabor", label: "Sabor" }, { key: "volumen_ml", label: "Volumen (ML)" }],
@@ -28,6 +29,27 @@ export default function ProductsPage() {
   const [filterCategory, setFilterCategory] = useState('ALL');
   const toast = useToast();
   const [expandedProducts, setExpandedProducts] = useState({});
+
+  const [contextMenu, setContextMenu] = useState(null); // { x, y, productId, productName }
+  const [showKardexModal, setShowKardexModal] = useState(false);
+  const [kardexProductId, setKardexProductId] = useState(null);
+  const [kardexProductName, setKardexProductName] = useState('');
+
+  useEffect(() => {
+    const handleCloseMenu = () => setContextMenu(null);
+    window.addEventListener('click', handleCloseMenu);
+    return () => window.removeEventListener('click', handleCloseMenu);
+  }, []);
+
+  const handleContextMenu = (e, product) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      productId: product.id,
+      productName: `${product.name} ${product.sku ? `(SKU: ${product.sku})` : ''}`
+    });
+  };
 
   const toggleExpand = (name) => {
     setExpandedProducts(prev => ({
@@ -572,7 +594,7 @@ export default function ProductsPage() {
                       // Single product row (no variants)
                       const p = variants[0];
                       return (
-                        <tr key={p.id}>
+                        <tr key={p.id} onContextMenu={(e) => handleContextMenu(e, p)}>
                           <td>
                             <div className="flex flex-col items-start gap-1">
                               <span className="text-sm font-semibold text-slate-800">{p.name}</span>
@@ -658,7 +680,7 @@ export default function ProductsPage() {
 
                       return (
                         <React.Fragment key={name}>
-                          <tr className="bg-slate-50/40 dark:bg-slate-900/20 font-bold border-l-4 border-indigo-500">
+                          <tr className="bg-slate-50/40 dark:bg-slate-900/20 font-bold border-l-4 border-indigo-500" onContextMenu={(e) => handleContextMenu(e, main)}>
                             <td>
                               <div 
                                 role="button" 
@@ -693,7 +715,7 @@ export default function ProductsPage() {
                           </tr>
 
                           {isExpanded && variants.map(p => (
-                            <tr key={p.id} className="bg-slate-100/20 dark:bg-slate-900/10 border-l border-slate-200">
+                            <tr key={p.id} className="bg-slate-100/20 dark:bg-slate-900/10 border-l border-slate-200" onContextMenu={(e) => handleContextMenu(e, p)}>
                               <td className="pl-8">
                                 <div className="flex items-center gap-2">
                                   <span className="text-slate-300 dark:text-slate-700 font-mono">└─</span>
@@ -767,6 +789,33 @@ export default function ProductsPage() {
         message="¿Estás seguro que deseas dar de baja permanentemente este producto del catálogo comercial? Esta acción no puede revertirse."
         onConfirm={proceedDelete}
         onCancel={() => setConfirmDelete(null)}
+      />
+
+      {contextMenu && (
+        <div 
+          className="fixed bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-xl py-1.5 z-[99999]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              setKardexProductId(contextMenu.productId);
+              setKardexProductName(contextMenu.productName);
+              setShowKardexModal(true);
+              setContextMenu(null);
+            }}
+            className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-none bg-transparent cursor-pointer"
+          >
+            Ver Kardex
+          </button>
+        </div>
+      )}
+
+      <KardexModal
+        isOpen={showKardexModal}
+        onClose={() => setShowKardexModal(false)}
+        productId={kardexProductId}
+        productName={kardexProductName}
       />
     </div>
   );
