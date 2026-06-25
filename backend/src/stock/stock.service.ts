@@ -272,4 +272,35 @@ export class StockService {
       await queryRunner.release();
     }
   }
+
+  async getKardex(tenant_id: string, productoId: string): Promise<any[]> {
+    const query = this.stockRep.manager
+      .createQueryBuilder(MovimientoInventario, 'movimiento')
+      .innerJoinAndSelect('movimiento.stock', 'stock')
+      .leftJoinAndSelect('stock.sucursal', 'sucursal')
+      .leftJoinAndSelect('stock.variacion', 'variacion')
+      .leftJoinAndSelect('movimiento.usuario', 'usuario')
+      .where('movimiento.tenant_id = :tenant_id', { tenant_id })
+      .andWhere('stock.producto_id = :productoId', { productoId })
+      .orderBy('movimiento.createdAt', 'DESC');
+
+    const result = await query.getMany();
+
+    return result.map(m => ({
+      id: m.id,
+      fecha: m.createdAt,
+      tipo: m.tipo,
+      cantidadDelta: m.cantidadDelta,
+      stockAnterior: Number(m.stockAnterior || 0),
+      stockResultante: Number(m.stockResultante || 0),
+      costoUnitario: Number(m.costoUnitario || 0),
+      motivo: m.motivo,
+      usuarioNombre: m.usuario?.name || 'Sistema',
+      referenciaTipo: m.referenciaTipo,
+      referenciaId: m.referenciaId,
+      sucursalNombre: m.stock?.sucursal?.name || 'General',
+      variacionDetalle: m.stock?.variacion?.opciones || null,
+      sku: m.stock?.variacion?.sku || null,
+    }));
+  }
 }
