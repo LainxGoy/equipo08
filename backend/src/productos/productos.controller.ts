@@ -61,4 +61,39 @@ export class ProductosController {
   remove(@TenantId() tenantId: string, @Param('id') id: string) {
     return this.productosService.remove(tenantId, id);
   }
+
+  @Get('categorias')
+  @RequirePermission('catalogo.ver')
+  findCategorias(@TenantId() tenantId: string) {
+    return this.productosService.findCategorias(tenantId);
+  }
+
+  @Post('categorias')
+  @RequirePermission('catalogo.crear')
+  createCategoria(
+    @TenantId() tenantId: string,
+    @Body('nombre') nombre: string,
+  ) {
+    return this.productosService.createCategoria(tenantId, nombre);
+  }
+
+  @Put('categorias/:id')
+  @RequirePermission('catalogo.editar')
+  updateCategoria(
+    @TenantId() tenantId: string,
+    @Param('id') id: string,
+    @Body('nombre') nombre: string,
+  ) {
+    return this.productosService.updateCategoria(tenantId, id, nombre);
+  }
+
+  @Delete('categorias/:id')
+  @RequirePermission('catalogo.eliminar')
+  removeCategoria(
+    @TenantId() tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.productosService.removeCategoria(tenantId, id);
+  }
 }
+

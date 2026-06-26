@@ -329,4 +329,100 @@ export class ProductosService {
     // Now delete the product
     await this.prodRep.remove(prod);
   }
+
+  async findCategorias(tenantId: string): Promise<Categoria[]> {
+    const catRep = this.dataSource.getRepository(Categoria);
+    const count = await catRep.count({ where: { tenant_id: tenantId } });
+
+    if (count === 0) {
+      const defaultNames = [
+        'Abarrotes y Alimentos',
+        'Bebidas',
+        'Ropa y Moda',
+        'Zapatos y Calzado',
+        'Belleza y Cuidado Personal',
+        'Joyería y Relojes',
+        'Juguetes y Niños',
+        'Hogar y Decoración',
+        'Electrónica y Tecnología',
+        'Ferretería y Construcción',
+        'Deportes y Aire Libre',
+        'Otros',
+      ];
+      const catsToCreate = defaultNames.map(name =>
+        catRep.create({ tenant_id: tenantId, nombre: name }),
+      );
+      await catRep.save(catsToCreate);
+    }
+
+    return catRep.find({
+      where: { tenant_id: tenantId },
+      order: { nombre: 'ASC' },
+    });
+  }
+
+  async createCategoria(tenantId: string, nombre: string): Promise<Categoria> {
+    const catRep = this.dataSource.getRepository(Categoria);
+    const cleanName = nombre.trim();
+    if (!cleanName) {
+      throw new BadRequestException('El nombre de la categoría no puede estar vacío.');
+    }
+
+    const existing = await catRep.findOne({
+      where: { tenant_id: tenantId, nombre: ILike(cleanName) },
+    });
+    if (existing) {
+      throw new BadRequestException(`La categoría '${cleanName}' ya existe.`);
+    }
+
+    const cat = catRep.create({ tenant_id: tenantId, nombre: cleanName });
+    return catRep.save(cat);
+  }
+
+  async updateCategoria(
+    tenantId: string,
+    id: string,
+    nombre: string,
+  ): Promise<Categoria> {
+    const catRep = this.dataSource.getRepository(Categoria);
+    const cleanName = nombre.trim();
+    if (!cleanName) {
+      throw new BadRequestException('El nombre de la categoría no puede estar vacío.');
+    }
+
+    const cat = await catRep.findOne({ where: { id, tenant_id: tenantId } });
+    if (!cat) {
+      throw new NotFoundException('Categoría no encontrada');
+    }
+
+    const existing = await catRep.findOne({
+      where: { tenant_id: tenantId, nombre: ILike(cleanName), id: Not(id) },
+    });
+    if (existing) {
+      throw new BadRequestException(`La categoría '${cleanName}' ya existe.`);
+    }
+
+    cat.nombre = cleanName;
+    return catRep.save(cat);
+  }
+
+  async removeCategoria(tenantId: string, id: string): Promise<void> {
+    const catRep = this.dataSource.getRepository(Categoria);
+    const cat = await catRep.findOne({ where: { id, tenant_id: tenantId } });
+    if (!cat) {
+      throw new NotFoundException('Categoría no encontrada');
+    }
+
+    const linkedProducts = await this.prodRep.count({
+      where: { tenant_id: tenantId, categoria_id: id },
+    });
+    if (linkedProducts > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar la categoría porque tiene productos asociados.',
+      );
+    }
+
+    await catRep.remove(cat);
+  }
 }
+
