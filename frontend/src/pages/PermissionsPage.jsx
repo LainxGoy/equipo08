@@ -4,7 +4,6 @@ export default function PermissionsPage() {
   return (
     <div className="full-width-container animate-fadein space-y-8">
       
-      {/* Page Header */}
       <div className="page-header-bar">
         <div>
           <h1 className="text-[var(--txt-primary)]">Políticas de Acceso (ACL)</h1>
@@ -12,10 +11,8 @@ export default function PermissionsPage() {
         </div>
       </div>
 
-      {/* Roles cards (Maximized width grid) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* SUPERVISOR */}
         <div className="border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between min-h-[520px]">
           <div>
             <h2 className="text-base font-bold text-[var(--txt-primary)] border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -45,7 +42,6 @@ export default function PermissionsPage() {
           </div>
         </div>
 
-        {/* VENDEDOR */}
         <div className="border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between min-h-[520px]">
           <div>
             <h2 className="text-base font-bold text-[var(--txt-primary)] border-b border-slate-100 dark:border-slate-800 pb-4">

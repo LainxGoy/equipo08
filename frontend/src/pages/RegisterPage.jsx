@@ -115,9 +115,9 @@ export default function RegisterPage() {
               <input 
                 type="text" 
                 value={nit} 
-                onChange={e => setNit(e.target.value)} 
+                onChange={e => setNit(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))} 
                 required 
-                placeholder="Ej. 1234567019"
+                placeholder="Ej. 12345678"
                 className="w-full bg-white border border-slate-300 rounded-lg py-2.5 px-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors font-medium text-sm"
               />
             </div>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
               <input 
                 type="tel" 
                 value={phone} 
-                onChange={e => setPhone(e.target.value)} 
+                onChange={e => setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))} 
                 required 
                 placeholder="Ej. 70001234"
                 className="w-full bg-white border border-slate-300 rounded-lg py-2.5 px-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors font-medium text-sm"
