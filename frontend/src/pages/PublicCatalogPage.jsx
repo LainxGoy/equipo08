@@ -258,6 +258,9 @@ export default function PublicCatalogPage() {
             </div>
           )}
         </div>
+        <h1 className="mt-4 text-2xl sm:text-3xl font-extrabold text-[var(--txt-primary)] tracking-tight text-center">
+          {tienda.name}
+        </h1>
       </div>      {/* Main Content Area */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
