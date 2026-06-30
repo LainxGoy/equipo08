@@ -52,7 +52,7 @@ export default function PermissionsPage() {
               VENDEDOR / ATENCIÓN Y CAJA
             </h2>
             <p className="text-sm text-[var(--txt-secondary)] mt-4 leading-relaxed">
-              Este perfil está orientado al personal encargado del cobro diario, atención al cliente y facturación rápida en caja. Es un rol puramente transaccional sin acceso a configuraciones de catálogo o almacén.
+              Este perfil está orientado al personal encargado del cobro, atención al cliente y facturación rápida en caja. Es un rol puramente transaccional sin acceso a configuraciones de catálogo o almacén.
             </p>
             
             <div className="mt-6 space-y-4">
