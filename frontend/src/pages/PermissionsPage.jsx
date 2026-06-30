@@ -26,7 +26,7 @@ export default function PermissionsPage() {
             </p>
             
             <div className="mt-6 space-y-4">
-              <h3 className="text-[11px] font-bold text-[var(--txt-muted)] uppercase tracking-wider">FUNCIONES HABILITADAS</h3>
+              <h3 className="text-xs font-bold text-[var(--txt-primary)]">FUNCIONES HABILITADAS</h3>
               <ul className="text-sm text-[var(--txt-secondary)] space-y-2.5 list-none pl-0">
                 <li>• <strong className="text-[var(--txt-primary)]">Caja y POS:</strong> puede registrar ventas, cobrar y realizar modificaciones dentro del proceso de venta.</li>
                 <li>• <strong className="text-[var(--txt-primary)]">Catálogo:</strong> puede registrar productos y actualizar precios de venta o costo.</li>
@@ -38,7 +38,7 @@ export default function PermissionsPage() {
           </div>
           
           <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <h3 className="text-[11px] font-bold text-[var(--txt-muted)] uppercase tracking-wider mb-2">RESTRICCIONES</h3>
+            <h3 className="text-xs font-bold text-[var(--txt-primary)] mb-2">RESTRICCIONES</h3>
             <p className="text-sm text-[var(--txt-secondary)] leading-relaxed">
               No puede eliminar sucursales, anular ventas históricas definitivas ni crear o despedir personal. Estas acciones quedan reservadas para perfiles administrativos superiores.
             </p>
@@ -56,7 +56,7 @@ export default function PermissionsPage() {
             </p>
             
             <div className="mt-6 space-y-4">
-              <h3 className="text-[11px] font-bold text-[var(--txt-muted)] uppercase tracking-wider">FUNCIONES HABILITADAS</h3>
+              <h3 className="text-xs font-bold text-[var(--txt-primary)]">FUNCIONES HABILITADAS</h3>
               <ul className="text-sm text-[var(--txt-secondary)] space-y-2.5 list-none pl-0">
                 <li>• <strong className="text-[var(--txt-primary)]">Caja y POS:</strong> puede registrar ventas, cobrar y utilizar la terminal de ventas en sucursal asignada.</li>
                 <li>• <strong className="text-[var(--txt-primary)]">Consulta:</strong> puede revisar el stock disponible de productos y consultar precios actualizados en catálogo en tiempo real.</li>
@@ -65,7 +65,7 @@ export default function PermissionsPage() {
           </div>
 
           <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <h3 className="text-[11px] font-bold text-[var(--txt-muted)] uppercase tracking-wider mb-2">RESTRICCIONES</h3>
+            <h3 className="text-xs font-bold text-[var(--txt-primary)] mb-2">RESTRICCIONES</h3>
             <p className="text-sm text-[var(--txt-secondary)] leading-relaxed">
               No tiene acceso a la creación de productos, modificación de precios de costo o venta, ingresos de nuevos lotes o visualización de auditorías de pérdida del negocio.
             </p>
